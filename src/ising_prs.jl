@@ -11,7 +11,7 @@ const SWG = SimpleWeightedGraphs
 using GraphPlot, Colors
 
 function ising_dependency_graph(
-    dims::Tuple{T,T};
+    dims::Vector{T};
     periodic::Bool = false,
     rng = -1,
 )::SWG.SimpleWeightedGraph{Int64,Float64} where {T}
@@ -115,7 +115,7 @@ end
 sigmoid(x) = @. 1 / (1 + exp(-x))
 
 function ising_prs(
-    dims::Tuple{T, T},
+    dims::Vector{T},
     h::Vector{U},
     J::U;
     periodic::Bool=false,
@@ -141,7 +141,7 @@ function ising_prs(
 end
 
 function ising_prs(
-    dims::Tuple{T, T},
+    dims::Vector{T},
     h::U,
     J::U;
     periodic::Bool = false,
@@ -167,8 +167,7 @@ function plot_ising(g, dims, state)
     display(p)
 end
 
-
-dims = (14, 14) # if > (14, 14) the display becomes all black, don't know why !
+dims = [14, 14] # if > (14, 14) the display becomes all black, don't know why !
 H, J = 0.0, -0.02 # Use Float
 
 periodic = false
@@ -176,6 +175,5 @@ seed = -1
 g, config, cnt = ising_prs(dims, H, J; periodic=periodic, rng=seed)
 
 plot_ising(g, dims, config)
-
 println("Number of resampling steps")
-println(cnt)
+print(cnt)
