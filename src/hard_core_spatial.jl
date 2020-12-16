@@ -77,8 +77,12 @@ function generate_sample_prs(
     rng = getRNG(rng)
     window_ = win === nothing ? window(hc) : win
 
-    n = rand(rng, Distributions.Poisson(hc.β))
-    points = hcat((rand(window_; rng=rng) for _ in 1:n)...)
+    n = rand(rng, Distributions.Poisson(hc.β * volume(window_)))
+    points = Matrix{Float64}(undef, dimension(hc), n)
+    for x in eachcol(points)
+        x .= rand(window_; rng=rng)
+    end
+
     while true
         bad = vec(any(pairwise_distances(points) .< hc.r, dims=2))
         !any(bad) && break
@@ -155,11 +159,11 @@ Pairwise distance matrix between columns of `X` and `Y`.
 Equivalent to `[norm(x - y) for x in X, y in Y]`.
 """
 function pairwise_distances(X, Y)
-    return Distances.pairwise(Distances.Euclidean(1e-8), X, Y, dims=2)
+    return Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
 end
 
 function pairwise_distances(X)
-    dist = Distances.pairwise(Distances.Euclidean(1e-8), X, dims=2)
+    dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
     dist[LA.diagind(dist)] .= Inf
     return dist
 end
