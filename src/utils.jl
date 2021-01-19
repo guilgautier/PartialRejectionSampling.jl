@@ -55,3 +55,20 @@ function random_edge_orientation(
     rng = getRNG(rng)
     return LG.SimpleDiGraphFromIterator(rand(rng) < p ? e : reverse(e) for e in LG.edges(g))
 end
+
+
+"""
+    pairwise_distances(X, Y)
+
+Pairwise distance matrix between columns of `X` and `Y`.
+Equivalent to `[norm(x - y) for x in X, y in Y]`.
+"""
+function pairwise_distances(X, Y)
+    return Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
+end
+
+function pairwise_distances(X)
+    dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
+    dist[LA.diagind(dist)] .= Inf
+    return dist
+end

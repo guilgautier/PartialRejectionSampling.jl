@@ -19,7 +19,7 @@ function plot(
         Plots.plot!(x[1] .+ circ_x,
                     x[2] .+ circ_y,
                     color="black",
-                    linewidth=0.2)
+                    linewidth=0.5)
     end
 
     win = pp.window
@@ -33,7 +33,6 @@ function plot(
         ising::Ising,
         state
 )
-
     pos = collect(Iterators.product(1:ising.dims[1], 1:ising.dims[2]))[:]
     locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
 

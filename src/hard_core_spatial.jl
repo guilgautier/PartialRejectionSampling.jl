@@ -67,6 +67,9 @@ end
 
 """
 Sample from spatial hard core model a.k.a Poisson disk sampling with intensity λ and radius r on [0, 1]^2, using Partial Rejection Sampling [https://arxiv.org/pdf/1801.07342.pdf](H. Guo, M. Jerrum).
+!!! warning "Side effects"
+
+    In the current implementation, the return sample may contain some point outside of the box! (see generate_sample_poisson_union_disks)
 """
 function generate_sample_prs(
         hc::HardCorePointProcess{T};
@@ -115,32 +118,33 @@ function generate_sample_poisson_union_disks(
     for (i, c) in enumerate(eachcol(centers))
         n = rand(rng, 𝒫)
         n == 0 && continue
-        proposed_points = generate_sample_uniform_in_disk(n, r, c; rng=rng)
+        proposed_points = generate_sample_uniform_in_disk(n, c, r; rng=rng)
         if i == 1
             points = hcat(points, proposed_points)
             continue
         end
-        centers_1i = @view centers[:, 1:i]
-        accept = vec(all(pairwise_distances(centers_1i, proposed_points) .> r, dims=1))
+        centers_ = @view centers[:, 1:i-1]
+        accept = vec(all(pairwise_distances(centers_, proposed_points) .> r, dims=1))
         points = hcat(points, proposed_points[:, accept])
     end
     return points
 end
 
 """
-    generate_sample_uniform_in_disk(n, center, radius; rng=-1)
+    generate_sample_uniform_in_disk(n, center, radius,
 
 Sample `n` points uniformly in ``D(c, r)`` (disk with `center` and `radius`)
 """
 function generate_sample_uniform_in_disk(
         n::Integer,
-        radius::Real,
-        center::AbstractVector;
+        center::AbstractVector,
+        radius::Real;
         rng=-1
 )::Matrix{Float64}
-    @assert n > 0
-    @assert length(center) == 2
     @assert radius > 0
+    @assert length(center) == 2
+
+    n == 0 && return Matrix{Float64}(undef, 2, 0)
     rng = getRNG(rng)
 
     sample = repeat(center, 1, n)
@@ -150,22 +154,6 @@ function generate_sample_uniform_in_disk(
         x .+= [r * cos(theta), r * sin(theta)]
     end
     return sample
-end
-
-"""
-    pairwise_distances(X, Y)
-
-Pairwise distance matrix between columns of `X` and `Y`.
-Equivalent to `[norm(x - y) for x in X, y in Y]`.
-"""
-function pairwise_distances(X, Y)
-    return Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
-end
-
-function pairwise_distances(X)
-    dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
-    dist[LA.diagind(dist)] .= Inf
-    return dist
 end
 
 # Default sample generate_sample
