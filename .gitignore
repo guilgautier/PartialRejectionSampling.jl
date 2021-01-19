@@ -1,8 +1,9 @@
 my_notes.md
 
+*.pdf
+
 # MacOS files
 *.DS_Store
-
 # Jupyter files
 *.ipynb_checkpoints
 

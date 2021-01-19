@@ -9,8 +9,8 @@ function RootedSpanningForest(
         graph::LG.SimpleGraph{T},
         roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
 ) where {T<:Integer}
-    roots_ = roots === nothing ? rand(1:LG.nv(graph)) : roots
-    return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, Set(roots_))
+    roots_ = Set(roots === nothing ? rand(1:LG.nv(graph)) : roots)
+    return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
 end
 
 """

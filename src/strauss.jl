@@ -55,7 +55,6 @@ end
 upper_bound_papangelou_conditional_intensity(strauss::StraussPointProcess) = strauss.β
 
 # Used in grid Partial Rejection Sampling, see grid_prs.jl
-
 function gibbs_interaction(
         strauss::StraussPointProcess{T},
         cell_i::SpatialCellGridPRS{T},

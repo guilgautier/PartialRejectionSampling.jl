@@ -15,6 +15,9 @@ using Plots, GraphPlot, Colors
 
 using Distances
 
+using LazySets
+const LS = LazySets
+
 abstract type AbstractPointProcess{T} end
 Base.eltype(pp::AbstractPointProcess{T}) where {T} = T
 abstract type AbstractSpatialPointProcess{T<:Vector} <: AbstractPointProcess{T} end
@@ -45,6 +48,5 @@ include("pattern_free_string.jl")
 
 # Display
 include("display.jl")
-
 
 end
