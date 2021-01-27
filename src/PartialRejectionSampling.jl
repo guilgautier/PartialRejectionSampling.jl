@@ -18,12 +18,10 @@ using Distances
 using LazySets
 const LS = LazySets
 
-abstract type AbstractPointProcess{T} end
-Base.eltype(pp::AbstractPointProcess{T}) where {T} = T
-abstract type AbstractSpatialPointProcess{T<:Vector} <: AbstractPointProcess{T} end
-abstract type AbstractGraphPointProcess{T} <: AbstractPointProcess{T} end
+using SpecialFunctions
+const SF = SpecialFunctions
 
-function generate_sample end
+include("common.jl")
 
 include("utils.jl")
 include("window.jl")
