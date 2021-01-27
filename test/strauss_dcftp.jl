@@ -9,6 +9,7 @@ win = PRS.SquareWindow(c, w)
 
 strauss = PRS.StraussPointProcess(β, γ, r, win)
 
-@time sample = PRS.generate_sample_dcftp(strauss; rng=-1)
+seed = -1
+@time sample = PRS.generate_sample_dcftp(strauss; rng=seed)
 
 p = PRS.plot(strauss, sample; title="")

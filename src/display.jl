@@ -46,9 +46,94 @@ function plot(
             locs_x,
             reverse(locs_y),
             nodefillc=col_nodes)
-    #     nodelabel=LG.vertices(g),
-    #     arrowlengthfrac=0.05
-    #     edgestrokec=col_edges
-
     return p
+end
+
+function plot(
+        hcg::HardCoreGraph,
+        state,
+        width::Int=0,
+        height::Int=0
+)
+    col_nodes = [Colors.colorant"turquoise" for _ in 1:LG.nv(hcg.g)]
+    col_nodes[state] .= Colors.colorant"red"
+
+    if width == 0 || height == 0
+        p = GraphPlot.gplot(hcg.g,
+                nodelabel=LG.vertices(hcg.g),
+                nodefillc=col_nodes
+                )
+        return p
+    else
+        pos = collect(Iterators.product(1:height, 1:width))[:]
+        locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
+
+        p = GraphPlot.gplot(hcg.g,
+                locs_x, locs_y,
+                nodelabel=LG.vertices(hcg.g),
+                nodefillc=col_nodes
+                )
+        return p
+    end
+end
+
+function plot(
+        rsf::RootedSpanningForest,
+        sample,
+        width::Int=0,
+        height::Int=0
+)
+    col_nodes, col_edges = color_cycles(sample)
+    col_nodes[collect(rsf.roots)] .= Colors.colorant"orange"
+
+    if width == 0 || height == 0
+        p = GraphPlot.gplot(sample,
+            nodelabel=LG.vertices(sample),
+            nodefillc=col_nodes,
+            edgestrokec=col_edges,
+            arrowlengthfrac=0.05,
+        )
+        return p
+    else
+        pos = collect(Iterators.product(1:height, 1:width))[:]
+        locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
+
+        p = GraphPlot.gplot(sample,
+            locs_x, locs_y,
+            nodelabel=LG.vertices(sample),
+            nodefillc=col_nodes,
+            edgestrokec=col_edges,
+            arrowlengthfrac=0.05,
+        )
+        return p
+    end
+end
+
+function plot(
+        sfg::SinkFreeGraph,
+        sample,
+        width::Int=0,
+        height::Int=0
+)
+    col_nodes = [LG.outdegree(sample, v) == 0 ? colorant"red" : colorant"turquoise"
+                 for v in LG.vertices(sample)]
+    if width == 0 || height == 0
+        p = GraphPlot.gplot(sample,
+            nodelabel=LG.vertices(sample),
+            nodefillc=col_nodes,
+            arrowlengthfrac=0.05,
+        )
+        return p
+    else
+        pos = collect(Iterators.product(1:height, 1:width))[:]
+        locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
+
+        p = GraphPlot.gplot(sample,
+            locs_x, locs_y,
+            nodelabel=LG.vertices(sample),
+            nodefillc=col_nodes,
+            arrowlengthfrac=0.05,
+        )
+        return p
+    end
 end

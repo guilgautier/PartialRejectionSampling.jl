@@ -151,7 +151,7 @@ function initialize_cells(
     for i in eachindex(cells)
         c_y, c_x = divrem(i-1, k)
         c = spp.window.c + spp.r .* [c_x, c_y]
-        win_i = spatial_window(c, @. min(spp.r, spp.window.w - c))
+        win_i = rectangle_square_window(c, min.(spp.r, spp.window.w .- c))
         cells[i] = SpatialCellGridPRS(win_i, T[])
     end
     return cells
