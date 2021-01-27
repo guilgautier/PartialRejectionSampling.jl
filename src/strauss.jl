@@ -23,15 +23,8 @@ function StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatia
     @assert β > 0
     @assert 0 <= γ <= 1
     @assert r > 0
-    return StraussPointProcess{Vector{Float64}}(float(β), float(γ), float(r), window)
+    return StraussPointProcess{Vector{Float64}}(β, γ, r, window)
 end
-
-function StraussPointProcess(β, γ, r, c, w)
-    return StraussPointProcess(β, γ, r, spatial_window(c, w))
-end
-
-window(strauss::StraussPointProcess) = strauss.window
-dimension(strauss::StraussPointProcess) = dimension(window(strauss))
 
 ## Sampling
 

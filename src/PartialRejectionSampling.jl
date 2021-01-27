@@ -31,6 +31,7 @@ include("dominated_cftp.jl")
 include("grid_prs.jl")
 
 # Spatial point processes
+include("poisson.jl")
 include("strauss.jl")
 include("hard_core_spatial.jl")
 

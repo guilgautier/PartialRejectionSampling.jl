@@ -1,4 +1,4 @@
-getRNG(seed::Integer = -1) = seed >= 0 ? Random.MersenneTwister(seed) : Random.GLOBAL_RNG
+getRNG(seed::Integer=-1) = seed >= 0 ? Random.MersenneTwister(seed) : Random.GLOBAL_RNG
 getRNG(seed::Union{Random.MersenneTwister,Random._GLOBAL_RNG}) = seed
 
 sigmoid(x) = @. 1 / (1 + exp(-x))
@@ -11,6 +11,13 @@ sigmoid(x) = @. 1 / (1 + exp(-x))
         x[i] == x1 || return false
     end
     return true
+end
+
+function normalize_columns!(X::Matrix, p::Real=2)
+    for x in eachcol(X)
+        LA.normalize!(x, p)
+    end
+    return X
 end
 
 ## Graph functions

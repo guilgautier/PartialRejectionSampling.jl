@@ -3,14 +3,14 @@
 #  - Huber, Perfect Simulation
 #  - [Kendall's notes on perfect simulation](https://warwick.ac.uk/fac/sci/statistics/staff/  academic-research/kendall/personal/ppt/428.pdf)
 #
-# Requirement: the target spatial point process must have the followingmethods
+# Requirement: the target spatial point process must have the following methods
 #  - function papangelou_conditional_intensity end
 #  - function upper_bound_papangelou_conditional_intensity end
 #  - function window end
 
 function generate_sample_dcftp(
         pp::AbstractSpatialPointProcess{T};
-        n₀::Int64=1,
+        n₀::Int=1,
         win::Union{Nothing,AbstractWindow}=nothing,
         rng=-1
 )::Vector{T} where {T}
@@ -18,20 +18,20 @@ function generate_sample_dcftp(
     @assert n₀ >= 1
     rng = getRNG(rng)
 
-    win_ = win === nothing ? window(pp) : win
+    window_ = win === nothing ? window(pp) : win
     β = upper_bound_papangelou_conditional_intensity(pp)
-    birth_rate = β * volume(win_)
+    birth_rate = β * volume(window_)
 
     # Dominating process
-    k = rand(rng, Distributions.Poisson(birth_rate))
-    D = Set{T}(rand(win_; rng=rng) for _ in 1:k)
+    hp = HomogeneousPoissonPointProcess(β, window_)
+    D = Set{T}(eachcol(generate_sample(hp; rng=rng)))
 
     M = Float64[]  # Marking process
     R = T[]        # Recording process
 
     steps = -1:-1:-n₀
     while true
-        backward_update!(D, M, R, steps, birth_rate, win_; rng=rng)
+        backward_update!(D, M, R, steps, birth_rate, window_; rng=rng)
         coupling, L = forward_coupling(D, M, R, pp, β)
         coupling && return collect(L)
         steps = (steps.stop-1):-1:(2*steps.stop)
@@ -44,7 +44,7 @@ function backward_update!(
         R::Vector{T},       # Recording process
         steps::StepRange,   # Number of backward steps
         birth_rate::Real,
-        window::AbstractWindow;
+        win::AbstractWindow;
         rng=-1
 ) where {T}
     rng = getRNG(rng)
@@ -58,7 +58,7 @@ function backward_update!(
             pushfirst!(M, rand(rng))
         else
             # forward birth (push) ≡ backward death (pushfirst)
-            x = rand(window; rng)
+            x = rand(win; rng=rng)
             push!(D, x)
             pushfirst!(R, x)
             pushfirst!(M, 0.0)
@@ -69,9 +69,9 @@ end
 function forward_coupling(
         D::Set{T},           # Dominating process
         M::Vector{Float64},  # Marking process
-        R::Vector{T},         # Recording process
+        R::Vector{T},        # Recording process
         pp::AbstractSpatialPointProcess{T},
-        β::Real             # Upper bound on papangelou conditional intensity
+        β::Real              # Upper bound on papangelou conditional intensity
 ) where {T}
     # L ⊆ X ⊆ U ⊆ D, where X is the target process
     L, U = empty(D), copy(D)
