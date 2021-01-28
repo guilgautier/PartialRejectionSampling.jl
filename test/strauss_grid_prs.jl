@@ -5,7 +5,7 @@ const PRS = PartialRejectionSampling
 r = 0.05  # interaction range = 2*radius
 β, γ = β₀ / (π * (r/2)^2), 0.1  # γ = 0 ≡ Hard core
 
-c, w = [0.0, 0.0], 1.0
+c, w = [0.0, 0.0], 2.0
 win = PRS.SquareWindow(c, w)
 
 strauss = PRS.StraussPointProcess(β, γ, r, win)

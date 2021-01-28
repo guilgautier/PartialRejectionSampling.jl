@@ -25,9 +25,9 @@ function generate_sample_grid_prs(
         rng=-1
 )::Vector{T} where {T}
     rng = getRNG(rng)
-    g = weighted_interaction_graph(pp; rng=rng)
 
-    cells = initialize_cells(pp, LG.nv(g))
+    g = weighted_interaction_graph(pp; rng=rng)
+    cells = initialize_cells(pp)
     resample_indices = Set(1:length(cells))
 
     while !isempty(resample_indices)
@@ -47,7 +47,17 @@ function weighted_interaction_graph(
         rng=-1
 )::SWG.SimpleWeightedGraph
     rng = getRNG(rng)
-    g = SWG.SimpleWeightedGraph(king_graph(ceil(Int, inv(pp.r))))
+
+    window_ = window(pp)
+    g = SWG.SimpleWeightedGraph()
+    nb_cells_x = nb_cells_y = 1
+    if allequal(window_.w)
+        nb_cells_x = ceil(Int, window_.w[1] / pp.r)
+        g = SWG.SimpleWeightedGraph(king_graph(nb_cells_x))
+    else
+        nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ pp.r)
+        g = SWG.SimpleWeightedGraph(king_graph(nb_cells_x, nb_cells_y))
+    end
     for e in LG.edges(g)
         i, j = Tuple(e)
         @inbounds g.weights[i, j] = g.weights[j, i] = rand(rng, weighttype(g))
@@ -144,14 +154,21 @@ end
 
 function initialize_cells(
         spp::AbstractSpatialPointProcess{T},
-        size::Integer
 )::Vector{SpatialCellGridPRS{T}} where {T}
-    cells = Vector{SpatialCellGridPRS{T}}(undef, size)
-    k = ceil(Int, inv(spp.r))
+    dimension(spp) != 2 && throw(DomainError(spp, "must be 2D point process for now"))
+    window_ = window(spp)
+    nb_cells_x = nb_cells_y = 1
+    if allequal(window_.w)  # SquareWindow
+        nb_cells_x = nb_cells_y = ceil(Int, window_.w[1] / spp.r)
+    else
+        nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ spp.r)
+    end
+
+    cells = Vector{SpatialCellGridPRS{T}}(undef, nb_cells_x * nb_cells_y)
     for i in eachindex(cells)
-        c_y, c_x = divrem(i-1, k)
-        c = spp.window.c + spp.r .* [c_x, c_y]
-        win_i = rectangle_square_window(c, min.(spp.r, spp.window.w .- c))
+        c_ij = divrem(i-1, nb_cells_x)  # coordinate (i, j) of the cell in the grid
+        c_xy = @. window_.c + spp.r * c_ij
+        win_i = rectangle_square_window(c_xy, @. min(spp.r, window_.w - c_xy))
         cells[i] = SpatialCellGridPRS(win_i, T[])
     end
     return cells

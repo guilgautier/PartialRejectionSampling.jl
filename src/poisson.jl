@@ -19,9 +19,9 @@ function generate_sample(
         rng=-1
 )::Matrix{Float64}
     rng = getRNG(rng)
-    win_ = win === nothing ? window(hp) : win
-    n = rand(rng, Distributions.Poisson(hp.β * volume(win_)))
-    return rand(win_, n; rng=rng)
+    window_ = win === nothing ? window(hp) : win
+    n = rand(rng, Distributions.Poisson(hp.β * volume(window_)))
+    return rand(window_, n; rng=rng)
 end
 
 """

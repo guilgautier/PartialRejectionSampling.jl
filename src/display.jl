@@ -69,7 +69,8 @@ function plot(
         locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
 
         p = GraphPlot.gplot(hcg.g,
-                locs_x, locs_y,
+                locs_x,
+                reverse(locs_y),
                 nodelabel=LG.vertices(hcg.g),
                 nodefillc=col_nodes
                 )
@@ -99,7 +100,8 @@ function plot(
         locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
 
         p = GraphPlot.gplot(sample,
-            locs_x, locs_y,
+            locs_x,
+            reverse(locs_y),
             nodelabel=LG.vertices(sample),
             nodefillc=col_nodes,
             edgestrokec=col_edges,
@@ -129,7 +131,8 @@ function plot(
         locs_x, locs_y = map(x->x[1], pos), map(x->x[2], pos)
 
         p = GraphPlot.gplot(sample,
-            locs_x, locs_y,
+            locs_x,
+            reverse(locs_y),
             nodelabel=LG.vertices(sample),
             nodefillc=col_nodes,
             arrowlengthfrac=0.05,

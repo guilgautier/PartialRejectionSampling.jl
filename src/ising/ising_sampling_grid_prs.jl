@@ -14,10 +14,9 @@ function weighted_interaction_graph(
 end
 
 function initialize_cells(
-        ising::Ising{T},
-        size::Integer
+        ising::Ising{T}
 )::Vector{GraphCellGridPRS{T}} where {T}
-    return [GraphCellGridPRS(GraphNode(i), zero(T)) for i in 1:size]
+    return [GraphCellGridPRS(GraphNode(i), zero(T)) for i in 1:LG.nv(ising.g)]
 end
 
 function generate_sample!(

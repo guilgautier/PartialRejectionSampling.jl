@@ -44,8 +44,8 @@ function SquareWindow(c::AbstractVector, w::Real=1.0)
     return SquareWindow{Float64}(c, w)
 end
 
-function rectangle_square_window(c::AbstractVector, w::Union{Real, AbstractVector})
-    return w isa Real ? SquareWindow(c, w) : RectangleWindow(c, w)
+function rectangle_square_window(c, w)
+    return allequal(w) ? SquareWindow(c, w[1]) : RectangleWindow(c, w)
 end
 
 struct BallWindow{T<:Float64} <: AbstractSpatialWindow{T}

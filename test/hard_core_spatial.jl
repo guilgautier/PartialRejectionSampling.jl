@@ -12,6 +12,6 @@ hc = PRS.HardCorePointProcess(b, r, win)
 
 seed = -1
 @time sample = PRS.generate_sample_prs(hc; rng=seed)
-# @time sample = PRS.generate_sample_grid_prs(hc; rng=-1)
+# @time sample = PRS.generate_sample_grid_prs(hc; rng=seed)
 
 p = PRS.plot(hc, sample; title="")
