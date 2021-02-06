@@ -1,29 +1,56 @@
+"""
+    RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
+
+RootedSpanningForest is a point process defined on the edges of a `graph` ``=(V, E)`` characterizing the uniform distribution of the [spanning forests](https://en.wikipedia.org/wiki/Spanning_tree) of `graph` rooted at `roots`
+
+It can be viewed as a the product distribution of the uniform distribution on the set of neighbors of each vertex conditioned on forming no cycles.
+
+**See also**
+
+Section 4.2 of [GuJe20](@cite)
+"""
 struct RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
     "Graph"
-    g::LG.SimpleGraph{Int64}
+    graph::LG.SimpleGraph{Int64}
     "Roots"
     roots::Set{Int64}
 end
 
-function RootedSpanningForest(
+"""
+    RootedSpanningForest(
         graph::LG.SimpleGraph{T},
         roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
+    ) where {T<:Integer}
+
+Construct a [`RootedSpanningForest`](@ref) model on `graph`, rooted at `roots`
+"""
+function RootedSpanningForest(
+    graph::LG.SimpleGraph{T},
+    roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
 ) where {T<:Integer}
     roots_ = Set(roots === nothing ? rand(1:LG.nv(graph)) : roots)
     return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
 end
 
 """
-Sample rooted spanning forest using Partial Rejection Sampling of [H. Guo, M. Jerrum](https://arxiv.org/pdf/1611.01647.pdf)
+    generate_sample_prs(
+            rsf::RootedSpanningForest{T};
+            rng=-1
+    )::T where {T<:LG.SimpleDiGraph{Int64}}
+
+Generate a rooted spanning forest of `rsf.graph`, uniformly at random among all rooted spanning forests rooted at `rsf.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJe20](@cite)
 """
 function generate_sample_prs(
         rsf::RootedSpanningForest{T};
         rng=-1
 )::T where {T<:LG.SimpleDiGraph{Int64}}
-    return _generate_sample_rooted_spanning_forest(rsf.g, rsf.roots; rng=rng)
+    return _generate_sample_rooted_spanning_forest_prs(rsf.graph, rsf.roots; rng=rng)
 end
 
-function _generate_sample_rooted_spanning_forest(
+"""
+Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJe20](@cite)
+"""
+function _generate_sample_rooted_spanning_forest_prs(
         graph::LG.SimpleGraph{T},
         roots;
         rng=-1
@@ -46,10 +73,19 @@ function _generate_sample_rooted_spanning_forest(
     return g
 end
 
-function random_neighbor_assignment(
+"""
+    random_neighbor_assignment(
         graph::LG.SimpleGraph{T},
         roots;
         rng=-1
+    )::LG.SimpleDiGraph{T} where {T}
+
+Return a oriented subgraph of `graph` where each vertex except the `roots` is connected to a unique neighbor, i.e., each vertex has outdegree equal to one.
+"""
+function random_neighbor_assignment(
+    graph::LG.SimpleGraph{T},
+    roots;
+    rng=-1
 )::LG.SimpleDiGraph{T} where {T}
     rng = getRNG(rng)
     g = LG.SimpleDiGraph(LG.nv(graph))
@@ -60,27 +96,4 @@ function random_neighbor_assignment(
         end
     end
     return g
-end
-
-function color_cycles(
-        graph::LG.SimpleDiGraph{T}
-) where {T}
-
-    edge_map = edgemap(graph)
-    edge_idx = T[]
-    nodes = Set{T}()
-    for cycle in LG.simplecycles(graph)
-        union!(nodes, cycle)
-        for (x, y) in zip(cycle, circshift(cycle, -1))
-            push!(edge_idx, edge_map[LG.Edge(x, y)])
-        end
-    end
-
-    col_nodes = [colorant"turquoise" for _ in 1:LG.nv(graph)]
-    col_nodes[collect(nodes)] .= colorant"red"
-
-    col_edges = [colorant"lightgray" for _ in 1:LG.ne(graph)]
-    col_edges[edge_idx] .= colorant"red"
-
-    return col_nodes, col_edges
 end

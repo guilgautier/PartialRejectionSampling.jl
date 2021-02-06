@@ -1,28 +1,64 @@
 """
-Implementation of Grid Partial Rejection Sampling of [Moka, Sarat B. and Kroese, Dirk P. (2020)](https://espace.library.uq.edu.au/view/UQ:d924abb)
+Implementation of Grid Partial Rejection Sampling of [MoKr20](@cite)
 """
 
 abstract type AbstractCellGridPRS end
-
-window(cell::AbstractCellGridPRS) = cell.window
-dimension(cell::AbstractCellGridPRS) = dimension(window(cell))
-
 mutable struct GraphCellGridPRS{T} <: AbstractCellGridPRS
     window::GraphNode{T}
     value::T
 end
-
 mutable struct SpatialCellGridPRS{T<:Vector{Float64}} <: AbstractCellGridPRS
     window::Union{RectangleWindow,SquareWindow}
     value::Vector{T}
 end
 
+window(cell::AbstractCellGridPRS) = cell.window
+dimension(cell::AbstractCellGridPRS) = dimension(window(cell))
+
 Base.isempty(cell::SpatialCellGridPRS) = isempty(cell.value)
 Base.iterate(cell::AbstractCellGridPRS, state=1) = iterate(cell.value, state)
 
-function generate_sample_grid_prs(
+"""
+    generate_sample!(
+        cell::AbstractCellGridPRS,
+        pp::AbstractPointProcess;
+        rng=-1
+    )
+
+Generate an exact sample of `pp` in `cell.window` and save it in `cell.value`
+"""
+function generate_sample!(
+    cell::AbstractCellGridPRS,
+    pp::AbstractPointProcess;
+    rng=-1
+)
+    rng = getRNG(rng)
+    cell.value = generate_sample(pp; win=cell.window, rng=rng)
+end
+
+function generate_sample!(
+    cells::Vector{T},
+    indices,
+    pp::AbstractPointProcess;
+    rng=-1
+) where {T<:AbstractCellGridPRS}
+    rng = getRNG(rng)
+    for i in indices
+        generate_sample!(cells[i], pp; rng=rng)
+    end
+end
+
+"""
+    generate_sample_grid_prs(
         pp::AbstractPointProcess{T};
         rng=-1
+    )::Vector{T} where {T}
+
+Generate an exact sample from `pp` using grid Partial Rejection Sampling (grid PRS) of [MoKr20](@cite)
+"""
+function generate_sample_grid_prs(
+    pp::AbstractPointProcess{T};
+    rng=-1
 )::Vector{T} where {T}
     rng = getRNG(rng)
 
@@ -37,25 +73,35 @@ function generate_sample_grid_prs(
     return vcat(getfield.(cells, :value)...)
 end
 
-@doc raw"""
-The dependency graph between the cells is a weighted king graph
-where each edge ``\{i,j\}`` is associated to an event and carries a uniform mark ``U_{ij}``.
-Note https://en.wikipedia.org/wiki/King%27s_graph
 """
-function weighted_interaction_graph(
+    weighted_interaction_graph(
         pp::AbstractSpatialPointProcess;
         rng=-1
+    )::SWG.SimpleWeightedGraph
+
+Construct the weighted interaction graph ([King graph](https://en.wikipedia.org/wiki/King%27s_graph)) used in [`generate_sample_grid_prs`](@ref), to generate exact samples from [`AbstractSpatialPointProcess`](@ref)
+
+The `pp.window` is divided into cells of length the interaction range `pp.r`.
+Each cell represents a vertex of the interaction (king) graph and each edge carries a uniform random varialble.
+
+**See also**
+
+- Figure 4 [MoKr20](@cite)
+"""
+function weighted_interaction_graph(
+    spp::AbstractSpatialPointProcess;
+    rng=-1
 )::SWG.SimpleWeightedGraph
     rng = getRNG(rng)
 
-    window_ = window(pp)
+    window_ = window(spp)
     g = SWG.SimpleWeightedGraph()
     nb_cells_x = nb_cells_y = 1
     if allequal(window_.w)
-        nb_cells_x = ceil(Int, window_.w[1] / pp.r)
+        nb_cells_x = ceil(Int, window_.w[1] / spp.r)
         g = SWG.SimpleWeightedGraph(king_graph(nb_cells_x))
     else
-        nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ pp.r)
+        nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ spp.r)
         g = SWG.SimpleWeightedGraph(king_graph(nb_cells_x, nb_cells_y))
     end
     for e in LG.edges(g)
@@ -65,28 +111,16 @@ function weighted_interaction_graph(
     return g
 end
 
-function generate_sample!(
-        cell::AbstractCellGridPRS,
-        pp::AbstractPointProcess;
-        rng=-1
-)
-    rng = getRNG(rng)
-    cell.value = generate_sample(pp; win=cell.window, rng=rng)
-end
-
-function generate_sample!(
-        cells::Vector{T},
-        indices,
-        pp::AbstractPointProcess;
-        rng=-1
-) where {T<:AbstractCellGridPRS}
-    rng = getRNG(rng)
-    for i in indices
-        generate_sample!(cells[i], pp; rng=rng)
-    end
-end
+function gibbs_interaction end
 
 @doc raw"""
+    find_bad_cells_indices!(
+        g::SWG.SimpleWeightedGraph{T,U},
+        cells::Vector{V},
+        pp::AbstractPointProcess;
+        rng=-1
+    )::Set{T} where {T,U,V<:AbstractCellGridPRS}
+
 Identify bad events and return the corresponding cells' index.
 An event ``\{i,j\}`` is said to be \"bad\"
 
@@ -94,18 +128,19 @@ An event ``\{i,j\}`` is said to be \"bad\"
     \left\{U_{ij} > \exp \left[ -\sum_{x \in C_i} \sum_{y \in C_j} V(x,y) \right] \right\}
 ```
 
-where ``U_{ij}`` is stored as the weight of edge ``\{i,j\}`` in the dependency graph ``g``.
+where ``U_{ij}`` is the weight of the edge ``\{i,j\}`` in the interaction graph ``g`` created by [`weighted_interaction_graph`](@ref) and ``V`` the Gibbs potential discribing the pairwise Gibbs interaction of `pp`
+
 Note: when a bad event occurs, the corresponding ``U_{ij}`` is resampled hence the "!"
 """
 function find_bad_cells_indices!(
-        g::SWG.SimpleWeightedGraph{T,U},
-        cells::Vector{V},
-        pp::AbstractPointProcess;
-        rng=-1
+    g::SWG.SimpleWeightedGraph{T,U},
+    cells::Vector{V},
+    pp::AbstractPointProcess;
+    rng=-1
 )::Set{T} where {T,U,V<:AbstractCellGridPRS}
     rng = getRNG(rng)
     bad = Set{T}()
-    for e ∈ LG.edges(g)
+    for e in LG.edges(g)
         i, j = Tuple(e)
         if e.weight > gibbs_interaction(pp, cells[i], cells[j])
             union!(bad, i, j)
@@ -116,10 +151,21 @@ function find_bad_cells_indices!(
     return bad
 end
 
-"""
-Identify which events need to be resampled and return the corresponding cells' index.
-This is the core of the Partial Rejection Sampling algorithm.
-Note: when an event needs to be resampled, the corresponding mark ``U_{ij}`` is resampled hence the "!"
+@doc raw"""
+    find_cells_to_resample_indices!(
+        g::SWG.SimpleWeightedGraph{T,U},
+        cells::Vector{V},
+        pp::AbstractPointProcess;
+        rng=-1
+    )::Set{T} where {T,U,V<:AbstractCellGridPRS}
+
+Identify the set of events to be resampled as constructed by Algorithm 5 in [GuJeLi19](@cite) as part of the Partial Rejection Sampling (PRS) method.
+Return the indices of the variables (here cells) involved in the corresponding events.
+
+This function is used as a subroutine of the grid PRS methodology of [MoKr20](@cite), see [`generate_sample_grid_prs`](@ref)
+
+**Note**
+If the event associated to the edge ``\{i,j\}`` of `g` is selected to be resampled, the uniform random variable encoded as the weight of the correspond edge is resampled (hence the "!")
 """
 function find_cells_to_resample_indices!(
         g::SWG.SimpleWeightedGraph{T,U},
@@ -131,10 +177,10 @@ function find_cells_to_resample_indices!(
     R = find_bad_cells_indices!(g, cells, pp; rng=rng)
     ∂R, ∂R_tmp = copy(R), empty(R)
     while !isempty(∂R)
-        for i ∈ ∂R
+        for i in ∂R
             isempty(cells[i]) && continue
-            for j ∈ LG.neighbors(g, i)
-                if j ∈ R
+            for j in LG.neighbors(g, i)
+                if j in R
                     if is_inner_interaction_possible(pp, cells[i], cells[j])
                         @inbounds g.weights[i, j] = g.weights[j, i] = rand(rng, U)
                     end
@@ -152,6 +198,15 @@ end
 
 ## Spatial point processes
 
+@doc raw"""
+    initialize_cells(
+        spp::AbstractSpatialPointProcess{T},
+    )::Vector{SpatialCellGridPRS{T}} where {T}
+
+The `spp.window` ([`RectangleWindow`](@ref) or [`SquareWindow`](@ref)) is divided into [`SpatialCellGridPRS`](@ref) of length the interaction range `pp.r` following the construction of [MoKr20](@cite) in their grid Partial Rejection Sampling (grid PRS) methodology.
+
+This function is used as a subroutine of [`generate_sample_grid_prs`](@ref)
+"""
 function initialize_cells(
         spp::AbstractSpatialPointProcess{T},
 )::Vector{SpatialCellGridPRS{T}} where {T}
@@ -174,6 +229,18 @@ function initialize_cells(
     return cells
 end
 
+@doc raw"""
+    is_inner_interaction_possible(
+        spp::AbstractSpatialPointProcess,
+        cell_i::SpatialCellGridPRS,
+        cell_j::SpatialCellGridPRS
+    ) = false
+
+Assume `cell_i` and `cell_j` are neighboring cells in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `spp` and already identified in the set of variables to be resampled in [`generate_sample_grid_prs`](@ref)
+Since the configuration of points in the corresponding cells and the uniform random variable associated to the event `\{i,j\}` are considered fixed, there is no degree of freedom to make the interaction between `cell_i` and `cell_j` possible.
+
+This function is used as a subroutine of [`generate_sample_grid_prs`](@ref)
+"""
 function is_inner_interaction_possible(
         spp::AbstractSpatialPointProcess,
         cell_i::SpatialCellGridPRS,
@@ -183,8 +250,16 @@ function is_inner_interaction_possible(
 end
 
 @doc raw"""
-Assuming ``C_i`` and ``C_j`` are neighboring cells,
-Given the configuration of ``C_i``, check whether an assignment of ``C_j`` can induce a bad event ``\{i, j\}``.
+    is_outer_interaction_possible(
+        spp::AbstractSpatialPointProcess,
+        cell_i::SpatialCellGridPRS,
+        cell_j::SpatialCellGridPRS
+    )::Bool
+
+Assume `cell_i` and `cell_j` are neighboring cells in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `spp`.
+Given the configuration of points in `cell_i`, check whether a realization of `spp` in `cell_j` can induce a bad event.
+
+This function is used as a subroutine of [`generate_sample_grid_prs`](@ref)
 """
 function is_outer_interaction_possible(
         spp::AbstractSpatialPointProcess,

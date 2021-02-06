@@ -1,17 +1,43 @@
-struct HomogeneousPoissonPointProcess{T} <: AbstractSpatialPointProcess{T}
+@doc raw"""
+    HomogeneousPoissonPointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
+
+Homegeneous [Poisson point process](https://en.wikipedia.org/wiki/Poisson_point_process) with intensity ``\beta``, denoted ``operatorname{Poisson}(\beta)``.
+
+``operatorname{Poisson}(\beta)`` has density (w.r.t. the homogenous Poisson point process with unit intensity ``operatorname{Poisson}(1)``) proportional to
+
+```math
+    \prod_{x \in X}
+        \beta
+````
+"""
+struct HomogeneousPoissonPointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
     β::Float64
     window::AbstractSpatialWindow{Float64}
 end
 
+@doc raw"""
+    HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
+
+Construct a [`PRS.HomogeneousPoissonPointProcess`](@ref) ``\operatorname{Poisson}(\beta)`` with intensity ``\beta`` restricted to `window`
+"""
 function HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
     @assert β > 0
     return HomogeneousPoissonPointProcess{Vector{Float64}}(β, window)
 end
 
+intensity(hp::HomogeneousPoissonPointProcess) = hp.β
+
 ## Sampling
 
 """
-Sample from a homogenous Poisson point process `hp` on window `win` for which the `volume` function is defined.
+    generate_sample(
+        hp::HomogeneousPoissonPointProcess;
+        win::Union{Nothing,AbstractWindow}=nothing,
+        rng=-1
+    )::Matrix{Float64}
+
+Generate a sample from a homogenous [`PRS.HomogeneousPoissonPointProcess`](@ref) `hp` on window `win`.
+Default window (`win=nothing`) is `hp.window` otherwise `win=nothing`.
 """
 function generate_sample(
         hp::HomogeneousPoissonPointProcess;
@@ -24,14 +50,22 @@ function generate_sample(
     return rand(window_, n; rng=rng)
 end
 
-"""
-Sample from a homogenous Poisson point process Poisson(β) on ⋃ᵢ B(cᵢ, r) (union of balls centered at cᵢ with the same radius r)
+@doc raw"""
+    generate_sample_poisson_union_balls(
+        β::Real,
+        centers::Matrix,
+        radius::Real;
+        win::Union{Nothing,AbstractWindow}=nothing,
+        rng=-1
+    )::Matrix{Float64}
+
+Generate a sample from a homogenous [`PRS.HomogeneousPoissonPointProcess`](@ref) Poisson(β) on ``\bigcup_{i} B(c_i, r)`` (union of balls centered at ``c_i`` with the same radius ``r``)
 
 Use the independence property of the Poisson point process on disjoint subsets in order to
 
-  - Sample from Poisson(β) on B(c₁, r)
-  - Sample from Poisson(β) on B(c₂, r) ∖ B(c₁, r)
-  - Sample from Poisson(β) on B(cⱼ, r) ∖ ⋃_i<j B(cᵢ, r)
+  - Sample from Poisson(β) on ``B(c_1, r)``
+  - Sample from Poisson(β) on ``B(c_2, r) \setminus B(c_1, r)``
+  - Sample from Poisson(β) on ``B(c_j, r) \setminus \bigcup_{i<j} B(c_i, r)``
   - ...
 """
 function generate_sample_poisson_union_balls(

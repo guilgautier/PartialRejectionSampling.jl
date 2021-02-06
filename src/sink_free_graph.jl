@@ -1,17 +1,31 @@
+"""
+    SinkFreeGraph{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
+"""
 struct SinkFreeGraph{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
     "Graph"
     g::LG.SimpleGraph{Int64}
 end
 
+"""
+    SinkFreeGraph(
+        graph::LG.SimpleGraph{T}
+    ) where {T<:Int}
+
+Construct a [`SinkFreeGraph`](@ref)
+"""
 function SinkFreeGraph(
         graph::LG.SimpleGraph{T}
-) where {T<:Integer}
+) where {T<:Int}
     return SinkFreeGraph{LG.SimpleDiGraph{T}}(graph)
 end
 
 """
-Sample uniform sink free orientation of a graph using Partial Rejection Sampling
-[H. Guo, M. Jerrum](https://arxiv.org/pdf/1611.01647.pdf)
+    generate_sample_prs(
+        sfg::SinkFreeGraph;
+        rng=-1
+    )::LG.SimpleDiGraph
+
+Generate an orientated version of `sfg.g` uniformly at random among all possible orientation where no sink occurs, using Partial Rejection Sampling (PRS), see Section 4.1 of [GuJe20](@cite)
 """
 function generate_sample_prs(
         sfg::SinkFreeGraph;
@@ -33,27 +47,4 @@ function generate_sample_prs(
         end
     end
     return g
-end
-
-function color_sinks(
-        graph::LG.SimpleDiGraph{T}
-) where {T}
-
-    nodes = T[]
-    edge_idx = T[]
-    edge_map = edgemap(graph)
-    for v in sink_nodes(graph)
-        push!(nodes, v)
-        for w in LG.inneighbors(graph, v)
-            push!(edge_idx, edge_map[LG.Edge(w, v)])
-        end
-    end
-
-    col_nodes = [Colors.colorant"turquoise" for _ in 1:LG.nv(graph)]
-    col_nodes[nodes] .= Colors.colorant"red"
-
-    col_edges = [Colors.colorant"lightgray" for _ in 1:LG.ne(graph)]
-    col_edges[edge_idx] .= Colors.colorant"red"
-
-    return col_nodes, col_edges
 end

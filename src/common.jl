@@ -9,3 +9,4 @@ dimension(pp::AbstractSpatialPointProcess) = dimension(window(pp))
 abstract type AbstractGraphPointProcess{T} <: AbstractPointProcess{T} end
 
 function generate_sample end
+function generate_sample_prs end

@@ -17,7 +17,14 @@ end
 abstract type AbstractSpatialWindow{T<:Float64} <: AbstractWindow end
 
 abstract type AbstractRectangleWindow{T<:Float64} <: AbstractSpatialWindow{T} end
-# Πᵢ [cᵢ, cᵢ + wᵢ]
+
+@doc raw"""
+    RectangleWindow{T<:Float64} <: AbstractRectangleWindow{T}
+
+Structure representing a hyperrectangle ``\prod_i [c_i, c_i + w_i]``, with fields
+- `c` lower left corner of the hyperrectangle
+- `w` width vector of the hyperrectangle along each coordinate
+"""
 struct RectangleWindow{T<:Float64} <: AbstractRectangleWindow{T}
     # Corner
     c::Vector{T}
@@ -25,13 +32,24 @@ struct RectangleWindow{T<:Float64} <: AbstractRectangleWindow{T}
     w::Vector{T}
 end
 
+"""
+    RectangleWindow(c::AbstractVector, w::Vector)
+
+Construct a [`PRS.RectangleWindow`](@ref)
+"""
 function RectangleWindow(c::AbstractVector, w::Vector)
     @assert length(c) == length(w)
     @assert all(w .> 0)
     return RectangleWindow{Float64}(c, w)
 end
 
-# Πᵢ [cᵢ, cᵢ + w]
+@doc raw"""
+    SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
+
+Structure representing a hypersquare ``\prod_i [c_i, c_i + w]``, with fields
+- `c` lower left corner of the hypersquare
+- `w` width of the hypersquare
+"""
 struct SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
     # Corner
     c::Vector{T}
@@ -39,15 +57,32 @@ struct SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
     w::T
 end
 
+"""
+    SquareWindow(c::AbstractVector, w::Real=1.0)
+
+Construct a [`PRS.SquareWindow`](@ref)
+"""
 function SquareWindow(c::AbstractVector, w::Real=1.0)
     @assert w > 0
     return SquareWindow{Float64}(c, w)
 end
 
+"""
+    rectangle_square_window(c, w)
+
+Construct a [`PRS.RectangleWindow`](@ref) or a [`PRS.SquareWindow`](@ref) depending on whether all coordinates of `w` are equal
+"""
 function rectangle_square_window(c, w)
     return allequal(w) ? SquareWindow(c, w[1]) : RectangleWindow(c, w)
 end
 
+@doc raw"""
+    BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
+
+Structure representing a hyperball ``B(c, r)``, with fields
+- `c` center of the hyperball
+- `r` radius of the ball
+"""
 struct BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
     # Center
     c::Vector{T}
@@ -55,7 +90,12 @@ struct BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
     r::T
 end
 
-function BallWindow(c::AbstractVector, r::Real)
+"""
+    BallWindow(c::AbstractVector, r::Real)
+
+Construct a [`PRS.BallWindow`](@ref)
+"""
+function BallWindow(c::AbstractVector, r::Real=1.0)
     @assert r > 0
     return BallWindow{Float64}(c, r)
 end
@@ -86,7 +126,7 @@ function Base.in(
 end
 
 """
-Sample uniformly in `AbstractRectangleWindow`
+Sample uniformly at random in `win`
 """
 function Base.rand(
     win::AbstractRectangleWindow{T};
@@ -97,7 +137,7 @@ function Base.rand(
 end
 
 """
-Sample n points uniformly in `AbstractRectangleWindow`
+Sample n points uniformly at random in `win`
 """
 function Base.rand(
     win::AbstractRectangleWindow{T},
@@ -111,7 +151,7 @@ function Base.rand(
 end
 
 """
-Sample uniformly in `BallWindow`
+Sample uniformly at random in `win`
 """
 function Base.rand(
     win::BallWindow{T};
@@ -126,7 +166,7 @@ function Base.rand(
 end
 
 """
-Sample n points uniformly in `BallWindow`
+Sample n points uniformly at random in `win`
 """
 function Base.rand(
     win::BallWindow{T},
