@@ -28,7 +28,18 @@ Compute an upper bound of [`papangelou_conditional_intensity`](@ref)
 """
 function upper_bound_papangelou_conditional_intensity end
 
+"""
+    isrepulsive
+
+Property of a [`PRS.AbstractSpatialPointProcess`](@ref) used in [`generate_sample_dcftp`](@ref).
+"""
 function isrepulsive end
+
+"""
+    isattractive
+
+Property of a [`PRS.AbstractSpatialPointProcess`](@ref) used in [`generate_sample_dcftp`](@ref).
+"""
 function isattractive end
 
 """
@@ -47,8 +58,8 @@ Generate an exact sample from a spatial point process `pp` on window optional wi
 
 **See also**
 
-    - [KeMo99](@cite), [KeMo00](@cite)
-    - Section 11.2.6 [MoWa04](@cite)
+- [KeMo99](@cite), [KeMo00](@cite)
+- Section 11.2.6 [MoWa04](@cite)
 """
 function generate_sample_dcftp(
     pp::AbstractSpatialPointProcess{T};

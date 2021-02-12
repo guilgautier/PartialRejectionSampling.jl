@@ -1,21 +1,69 @@
+"""
+Abstract type representing a window
+
+**See also**
+
+- [`PRS.AbstractDiscreteWindow`](@ref)
+- [`PRS.AbstractSpatialWindow`](@ref)
+"""
 abstract type AbstractWindow end
 
 # Discrete
 
+"""
+Abstract type representing a window on a discrete state space
+
+**See also**
+
+- [`PRS.GraphNode`](@ref)
+"""
 abstract type AbstractDiscreteWindow{T} <: AbstractWindow end
 
+"""
+    GraphNode{T<:Int64} <: AbstractDiscreteWindow{T}
+
+Structure with unique field `idx` representing the index of the vertex of a graph
+"""
 struct GraphNode{T<:Int64} <: AbstractDiscreteWindow{T}
     # Corner
     idx::T
 end
-function GraphNode(idx::Integer)
-    return GraphNode{typeof(idx)}(idx)
+
+"""
+    GraphNode(idx::T) where {T<:Int}
+
+Construct a [`GraphNode`](@ref)
+"""
+function GraphNode(idx::T) where {T<:Int}
+    return GraphNode{T}(idx)
 end
 
 # Spatial
 
+@doc raw"""
+    AbstractSpatialWindow{T<:Float64} <: AbstractWindow{T}
+
+Abstract type representing a spatial window ``\subseteq \mathbb{R}^d``
+
+**See also**
+
+- [`PRS.AbstractRectangleWindow`](@ref)
+    - [`PRS.RectangleWindow`](@ref)
+    - [`PRS.SquareWindow`](@ref)
+- [`PRS.BallWindow`](@ref)
+"""
 abstract type AbstractSpatialWindow{T<:Float64} <: AbstractWindow end
 
+@doc raw"""
+    AbstractRectangleWindow{T<:Float64} <: AbstractSpatialWindow{T}
+
+Abstract type representing a [hyperrectangle](https://en.wikipedia.org/wiki/Hyperrectangle) ``\prod_i [c_i, c_i + w_i]``
+
+**See also**
+
+- [`PRS.RectangleWindow`](@ref)
+- [`PRS.SquareWindow`](@ref)
+"""
 abstract type AbstractRectangleWindow{T<:Float64} <: AbstractSpatialWindow{T} end
 
 @doc raw"""
@@ -46,9 +94,9 @@ end
 @doc raw"""
     SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
 
-Structure representing a hypersquare ``\prod_i [c_i, c_i + w]``, with fields
-- `c` lower left corner of the hypersquare
-- `w` width of the hypersquare
+Structure representing a [hypercube](https://fr.wikipedia.org/wiki/Hypercube) ``\prod_i [c_i, c_i + w]``, with fields
+- `c` lower left corner of the hypercube
+- `w` length of the hypercube
 """
 struct SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
     # Corner
@@ -70,7 +118,7 @@ end
 """
     rectangle_square_window(c, w)
 
-Construct a [`PRS.RectangleWindow`](@ref) or a [`PRS.SquareWindow`](@ref) depending on whether all coordinates of `w` are equal
+Construct a [`PRS.RectangleWindow`](@ref) or a [`PRS.SquareWindow`](@ref) depending on whether all coordinates of `w` are the same
 """
 function rectangle_square_window(c, w)
     return allequal(w) ? SquareWindow(c, w[1]) : RectangleWindow(c, w)
@@ -79,8 +127,8 @@ end
 @doc raw"""
     BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
 
-Structure representing a hyperball ``B(c, r)``, with fields
-- `c` center of the hyperball
+Structure representing a closed [ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) ``B(c, r)``, with fields
+- `c` center of the ball
 - `r` radius of the ball
 """
 struct BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
@@ -100,17 +148,55 @@ function BallWindow(c::AbstractVector, r::Real=1.0)
     return BallWindow{Float64}(c, r)
 end
 
+"""
+    dimension(win::GraphNode) = 0
+"""
 dimension(win::GraphNode) = 0
+
+"""
+    dimension(win::AbstractSpatialWindow) = length(win.c)
+
+Return the dimension of window `win`
+"""
 dimension(win::AbstractSpatialWindow) = length(win.c)
 
+"""
+    volume(win::GraphNode) = 0
+"""
 volume(win::GraphNode) = 0
+
+@doc raw"""
+    volume(win::RectangleWindow) = prod(win.w)
+"""
 volume(win::RectangleWindow) = prod(win.w)
+
+@doc raw"""
+    volume(win::SquareWindow) = win.w^dimension(win)
+"""
 volume(win::SquareWindow) = win.w^dimension(win)
+
+@doc raw"""
+    volume(win::BallWindow) =
+
+Return the [volume of the ball](https://en.wikipedia.org/wiki/Volume_of_an_n-ball) ``B(c, r)\subseteq R^d`` as
+
+```math
+    \frac{π^{d/2} r^d}{\Gamma(d/2 + 1)}
+```
+"""
 function volume(win::BallWindow)
     d = dimension(win)
     return π^(d/2) * win.r^d / SF.gamma(d/2 + 1)
 end
 
+@doc raw"""
+    Base.in(
+        x::AbstractVector,
+        win::AbstractRectangleWindow
+    )
+
+Check if ``x \in \prod_{i} [c_i, c_i + w_i]``
+"""
 function Base.in(
     x::AbstractVector,
     win::AbstractRectangleWindow
@@ -118,6 +204,14 @@ function Base.in(
     return all(win.c .<= x) && all(x .<= win.c .+ win.w)
 end
 
+@doc raw"""
+    Base.in(
+        x::AbstractVector,
+        win::AbstractRectangleWindow
+    )
+
+Check if ``x \in B(c, r)``, i.e., ``\left\| x - c \right\| \leq r``
+"""
 function Base.in(
     x::AbstractVector,
     win::BallWindow
@@ -126,7 +220,12 @@ function Base.in(
 end
 
 """
-Sample uniformly at random in `win`
+    Base.rand(
+        win::AbstractRectangleWindow{T};
+        rng=-1
+    )::Vector{T} where {T}
+
+Sample uniformly at random in window `win`
 """
 function Base.rand(
     win::AbstractRectangleWindow{T};
@@ -137,7 +236,13 @@ function Base.rand(
 end
 
 """
-Sample n points uniformly at random in `win`
+    Base.rand(
+        win::AbstractRectangleWindow{T},
+        n::Int;
+        rng=-1
+    )::Vector{T} where {T}
+
+Sample `n` points uniformly at random in window `win`
 """
 function Base.rand(
     win::AbstractRectangleWindow{T},
@@ -151,7 +256,12 @@ function Base.rand(
 end
 
 """
-Sample uniformly at random in `win`
+    Base.rand(
+        win::BallWindow{T};
+        rng=-1
+    )::Vector{T} where {T}
+
+Sample uniformly at random in window `win`
 """
 function Base.rand(
     win::BallWindow{T};
@@ -166,7 +276,13 @@ function Base.rand(
 end
 
 """
-Sample n points uniformly at random in `win`
+    Base.rand(
+        win::BallWindow{T},
+        n::Int;
+        rng=-1
+    )::Vector{T} where {T}
+
+Sample `n` points uniformly at random in window `win`
 """
 function Base.rand(
     win::BallWindow{T},

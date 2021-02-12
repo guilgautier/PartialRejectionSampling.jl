@@ -19,7 +19,7 @@ with intensity ``\beta > 0``, interaction coefficient ``0\leq \gamma\leq 1`` and
 - ``\gamma = 1`` corresponds to the [`PRS.HomogeneousPoissonPointProcess`](@ref)
 
 **See also**
-- 6.2.2. [MoWa04](@cite)
+- Section 6.2.2 of [MoWa04](@cite)
 """
 struct StraussPointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
     "Intensity"
@@ -34,7 +34,7 @@ end
 @doc raw"""
     StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatialWindow)
 
-Construct a [`PRS.StraussPointProcess`](@ref) with intensity ``\beta > 0``, interaction coefficient ``0 \leq \gamma \leq 1``, and interaction range ``r > 0``, restricted to `window`.
+Construct a [`PRS.StraussPointProcess`](@ref) with intensity `β`, interaction coefficient `γ`, and interaction range `r`, restricted to `window`.
 """
 function StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatialWindow)
     @assert β > 0
@@ -43,8 +43,19 @@ function StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatia
     return StraussPointProcess{Vector{Float64}}(β, γ, r, window)
 end
 
+"""
+    intensity(pp::StraussPointProcess) = pp.β
+"""
 intensity(pp::StraussPointProcess) = pp.β
+
+"""
+    interaction_coefficient(pp::StraussPointProcess) = pp.γ
+"""
 interaction_coefficient(pp::StraussPointProcess) = pp.γ
+
+"""
+    interaction_range(pp::StraussPointProcess) = pp.r
+"""
 interaction_range(pp::StraussPointProcess) = pp.r
 
 # Sampling
@@ -57,7 +68,10 @@ interaction_range(pp::StraussPointProcess) = pp.r
     )::Vector{T} where {T}
 
 Genererate an exact sample from [`PRS.StraussPointProcess`](@ref).
-Default sampler is dominated CFTP of [MoWa99](@cite), see [`PRS.generate_sample_dcftp`](@ref)
+Default sampler is [`PRS.generate_sample_dcftp`](@ref)
+
+**See also**
+- [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample(
     pp::StraussPointProcess{T};
@@ -70,9 +84,35 @@ end
 
 ## dominated CFTP, see dominated_cftp.jl
 
+@doc raw"""
+    isrepulsive(pp::StraussPointProcess) = true
+
+We consider only repulsive [`StraussPointProcess`](@ref) since ``0 \leq \gamma \leq 1``
+"""
 isrepulsive(pp::StraussPointProcess) = true
+
+@doc raw"""
+    isattractive(pp::StraussPointProcess) = false
+
+We consider only repulsive [`StraussPointProcess`](@ref) since ``0 \leq \gamma \leq 1``
+"""
 isattractive(pp::StraussPointProcess) = false
 
+@doc raw"""
+    papangelou_conditional_intensity(
+        pp::StraussPointProcess{Vector{T}},
+        x::AbstractVector{T},
+        X::Union{AbstractVector{Vector{T}}, AbstractSet{Vector{T}}}
+    )::Real where {T}
+
+Compute
+```math
+    \beta
+    \gamma^{|y \in X ~;~ \left\| x - y \right\|_2 \leq r\}|}
+    ~ 1_{x \notin X},
+```
+where ``\beta=`` `pp.β``, ``\gamma=`` `pp.γ`` and ``r=`` `pp.r`.
+"""
 function papangelou_conditional_intensity(
     pp::StraussPointProcess{Vector{T}},
     x::AbstractVector{T},
@@ -87,6 +127,9 @@ function papangelou_conditional_intensity(
     return β * γ^nb_interactions
 end
 
+"""
+    upper_bound_papangelou_conditional_intensity(pp::StraussPointProcess) = intensity(pp)
+"""
 upper_bound_papangelou_conditional_intensity(pp::StraussPointProcess) = intensity(pp)
 
 ## Partial rejection sampling
@@ -99,7 +142,7 @@ upper_bound_papangelou_conditional_intensity(pp::StraussPointProcess) = intensit
     )::Vector{T} where {T}
 
 Genererate an exact sample from [`PRS.StraussPointProcess`](@ref) using partial rejection sampling (PRS).
-Default sampler is grid partial rejection sampling of [MoKr20](@cite), see [`PRS.generate_sample_grid_prs`](@ref)
+Default sampler is [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample_prs(
     pp::StraussPointProcess{T};

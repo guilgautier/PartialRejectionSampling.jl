@@ -7,7 +7,7 @@ It can be viewed as a the product distribution of the uniform distribution on th
 
 **See also**
 
-Section 4.2 of [GuJe20](@cite)
+Section 4.2 of [GuJeLi19](@cite)
 """
 struct RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
     "Graph"
@@ -38,7 +38,7 @@ end
             rng=-1
     )::T where {T<:LG.SimpleDiGraph{Int64}}
 
-Generate a rooted spanning forest of `rsf.graph`, uniformly at random among all rooted spanning forests rooted at `rsf.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJe20](@cite)
+Generate a rooted spanning forest of `rsf.graph`, uniformly at random among all rooted spanning forests rooted at `rsf.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
 """
 function generate_sample_prs(
         rsf::RootedSpanningForest{T};
@@ -48,7 +48,7 @@ function generate_sample_prs(
 end
 
 """
-Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJe20](@cite)
+Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
 """
 function _generate_sample_rooted_spanning_forest_prs(
         graph::LG.SimpleGraph{T},

@@ -28,7 +28,7 @@ end
 
 Each node of `ising.graph` is considered as `cell` of type [`GraphCellGridPRS`](@ref) such that `cell.window` is a [`GraphNode`](@ref) and `cell.value` initialized to `zero(T)`
 
-This function is used as a subroutine of [`generate_sample_grid_prs`](@ref)
+This function is used as a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function initialize_cells(
     ising::Ising{T}
@@ -36,6 +36,24 @@ function initialize_cells(
     return [GraphCellGridPRS(GraphNode(i), zero(T)) for i in 1:LG.nv(ising.graph)]
 end
 
+@doc raw"""
+    generate_sample!(
+        cell::GraphCellGridPRS,
+        ising::Ising;
+        rng=-1
+    )
+
+Generate an exact sample from the marginal distribution of state of the [`Ising`](@ref) model `ising`, at index `cell.window.idx`.
+
+More specifically
+```math
+    x_i
+        \sim
+        \operatorname{Bernoulli}_{-1, 1}
+            (\sigma(h_i)),
+```
+where ``\sigma`` denotes the [`sigmoid`](@ref) function.
+"""
 function generate_sample!(
     cell::GraphCellGridPRS,
     ising::Ising;
@@ -78,14 +96,14 @@ end
         xⱼ::GraphCellGridPRS{T}
     ) = true
 
-Assume `xᵢ` and `xⱼ` are neighboring sites in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `ising.graph` and already identified in the set of variables to be resampled [`generate_sample_grid_prs`](@ref).
+Assume `xᵢ` and `xⱼ` are neighboring sites in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `ising.graph` and already identified in the set of variables to be resampled [`PRS.generate_sample_grid_prs`](@ref).
 Given the states of `xᵢ` and `xⱼ`, check whether a new assigment of ``U_{ij}`` (the weight of edge ``\{i,j\}``) can induce the bad event
 
 ```math
     U_{ij} > \exp(J x_i x_j - |J|))
 ```
 
-This function is used as a subroutine of [`generate_sample_grid_prs`](@ref)
+This function is used as a subroutine of [`PRS.generate_sample_grid_prs`](@ref)
 """
 function is_inner_interaction_possible(
     ising::Ising{T},
@@ -109,7 +127,7 @@ Given the state of `xᵢ`, one can always find a new assigment of `xⱼ` and/or 
     U_{ij} > \exp(J x_i x_j - |J|))
 ```
 
-This function is used as a subroutine of [`generate_sample_grid_prs`](@ref)
+This function is used as a subroutine of [`PRS.generate_sample_grid_prs`](@ref)
 """
 function is_outer_interaction_possible(
     ising::Ising{T},

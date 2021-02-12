@@ -1,9 +1,22 @@
 getRNG(seed::Integer=-1) = seed >= 0 ? Random.MersenneTwister(seed) : Random.GLOBAL_RNG
 getRNG(seed::Union{Random.MersenneTwister,Random._GLOBAL_RNG}) = seed
 
+@doc raw"""
+    sigmoid(x)
+
+Elementwise evaluation of the [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function)
+
+```math
+    \sigma(t) = \frac{1}{1+\exp(t)}
+```
+"""
 sigmoid(x) = @. 1 / (1 + exp(-x))
 
-# Adapted from https://stackoverflow.com/questions/47564825/check-if-all-the-elements-of-a-julia-array-are-equal/47578613
+"""
+    allequal(x)::Bool
+
+Inspired by a [Stackoverflow post](https://stackoverflow.com/questions/47564825/check-if-all-the-elements-of-a-julia-array-are-equal/47578613)
+"""
 @inline function allequal(x)::Bool
     length(x) < 2 && return true
     x1 = x[1]
@@ -13,6 +26,11 @@ sigmoid(x) = @. 1 / (1 + exp(-x))
     return true
 end
 
+"""
+    normalize_columns!(X::Matrix, p::Real=2)
+
+using `LA.normalize!(x, p)` for each column `x` of `X`.
+"""
 function normalize_columns!(X::Matrix, p::Real=2)
     for x in eachcol(X)
         LA.normalize!(x, p)
@@ -95,17 +113,21 @@ function random_edge_orientation(
 end
 
 """
-    pairwise_distances(X, Y)
+    pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
 
-Pairwise distance matrix between columns of `X` and `Y`.
+Pairwise euclidean distance matrix between columns of `X` and `Y`.
 Equivalent to `[norm(x - y) for x in X, y in Y]`.
 """
-function pairwise_distances(X, Y)
-    return Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
-end
+pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
 
-function pairwise_distances(X)
+"""
+    pairwise_distances(X; diag_coeff=Inf) = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
+
+Pairwise euclidean distance matrix between columns of `X`
+Equivalent to [`pairwise_distances`](@ref)`(X, X)` and setting the diagonal elements to `diag_coeff`.
+"""
+function pairwise_distances(X; diag_coeff=Inf)
     dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
-    dist[LA.diagind(dist)] .= Inf
+    dist[LA.diagind(dist)] .= diag_coeff
     return dist
 end

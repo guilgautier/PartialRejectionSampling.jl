@@ -5,7 +5,7 @@
         rng=-1
     )::Vector{T} where {T<:Int}
 
-Generate an exact realization of the [`PRS.Ising`](@ref) model using a tailored implementation of the perfect Gibbs sampler of [FeGuYi19](@cite)
+Generate an exact realization of the [`PRS.Ising`](@ref) model using a tailored implementation of the perfect Gibbs sampler of [FeGuYi19](@cite).
 """
 function generate_sample_gibbs_perfect(
     ising::Ising{T};
@@ -71,7 +71,7 @@ end
         rng=-1
     )::Bool
 
-This function is used as a subroutine of [`generate_sample_gibbs_perfect`](@ref)
+This function is used as a subroutine of [`PRS.generate_sample_gibbs_perfect`](@ref).
 """
 function bayes_filter(
     ising::Ising{T},
@@ -98,14 +98,13 @@ end
         rng=-1
     ) where {T<:Int}
 
-Generate an exact sample from the conditional distribution of the state ``x_i`` given its neighboring states in `ising.graph`
-
-
+Generate an exact sample from the conditional distribution of the state ``x_i`` given its neighboring states in `ising.graph`.
+More specifically,
 ```math
     x_i \mid x_{N(i)}
         \sim
         \operatorname{Bernoulli}_{-1, 1}
-            (\sigma(h_i + J \sum_{j \in N(i)} x_j),
+            (\sigma(h_i + J \sum_{j \in N(i)} x_j).
 ```
 """
 function generate_sample_conditional!(

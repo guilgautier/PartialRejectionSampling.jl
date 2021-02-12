@@ -28,7 +28,7 @@ end
 
 Generate a string uniformly at random among all strings made of characters from `psf.alphabet` with no occurence of the pattern `psf.pattern`.
 
-Default sampler is [`generate_sample_prs`](@ref)
+Default sampler is [`PRS.generate_sample_prs`](@ref)
 """
 function generate_sample(
         psf::PatternFreeString{T},
@@ -159,7 +159,7 @@ end
 Identify the set of events to be resampled as constructed by Algorithm 5 in [GuJeLi19](@cite) as part of the Partial Rejection Sampling (PRS) method.
 Return the indices of the variables (here characters) involved in the corresponding events.
 
-This function is used as a subroutine of the grid PRS methodology of [MoKr20](@cite), see [`generate_sample_grid_prs`](@ref)
+This function is used as a subroutine of the grid PRS methodology of [MoKr20](@cite), see [`PRS.generate_sample_grid_prs`](@ref)
 
 **See also**
 

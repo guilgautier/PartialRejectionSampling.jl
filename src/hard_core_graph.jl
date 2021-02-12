@@ -32,7 +32,7 @@ end
         β::Real
     ) where {T<:Integer}
 
-Construct a [`HardCoreGraph`](@ref) model on `graph` with parameter `β≥0`
+Construct a [`HardCoreGraph`](@ref)
 """
 function HardCoreGraph(
     graph::LG.SimpleGraph{T},
@@ -48,9 +48,8 @@ end
 
 """
     generate_sample_prs(
-            pp::HardCoreGraph{T};
-            win::Union{Nothing,AbstractWindow}=nothing,
-            rng=-1
+        hcg::HardCoreGraph{T};
+        rng=-1
     )::Vector{T} where {T}
 
 Sample from [`PRS.HardCoreGraph`](@ref) using Partial Rejection Sampling (PRS), see Section 7.2 of [GuJeLi19](@cite)
