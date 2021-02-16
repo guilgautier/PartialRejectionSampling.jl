@@ -1,24 +1,23 @@
 @doc raw"""
     HardCoreGraph{T<:Integer} <: AbstractGraphPointProcess{T}
 
-Point process defined on the vertices of a `graph` ``=(V, E)``, and parametrized by β ``\geq 0``, with joint density
+Concrete type representing a point process on the vertices of a `graph` ``=(V, E)`` parametrized by `\beta ≥ 0` which characterizes the distribution on the [independent sets](https://en.wikipedia.org/wiki/Independent_set_(graph_theory)) of `graph`, where each vertex is present with marginal probability ``\frac{\beta}{1+\beta}``.
+
+In other words, it can also be viewed as the product distribution ``\operatorname{Bernoulli}(\frac{\beta}{1+\beta})^{\otimes |V|}`` on the vertices of `graph` conditioned on forming an independent set,
 
 ```math
     \mathbb{P}\!\left[ \mathcal{X} = X \right]
     \propto
     \prod_{x\in X}
         \frac{\beta}{1+\beta}
-     1_{X \text{forms an independent set}}
+     1_{X \text{forms an independent set}}.
 ```
-
-It can be viewed as a distribution on the [independent sets](https://en.wikipedia.org/wiki/Independent_set_(graph_theory)) of `graph`, where each vertex is present with marginal probability ``\frac{\beta}{1+\beta}``.
-In other words, it can also be viewed as the product distribution ``\operatorname{Bernoulli}(\frac{\beta}{1+\beta})^{\otimes |V|}`` on the vertices of `graph` conditioned on forming an independent set.
 
 **See also**
 
 - Section 7.2 of [GuJeLi19](@cite)
 - Example 4.1 of [MoKr20](@ref)
-- [`PRS.HardCoreSpatial`](@ref)
+- [`PRS.HardCorePointProcess`](@ref), the spatial counterpart of [`PRS.HardCoreGraph`](@ref)
 """
 struct HardCoreGraph{T<:Integer} <: AbstractGraphPointProcess{T}
     "Graph"
@@ -32,7 +31,7 @@ end
         β::Real
     ) where {T<:Integer}
 
-Construct a [`HardCoreGraph`](@ref)
+Construct a [`HardCoreGraph`](@ref).
 """
 function HardCoreGraph(
     graph::LG.SimpleGraph{T},
@@ -44,11 +43,28 @@ end
 
 # Sampling
 
+"""
+    generate_sample(
+        pp::HardCoreGraph{T};
+        rng=-1
+    )::Vector{T} where {T}
+
+Generate an exact sample from the [`PRS.SinkFreeGraph`](@ref).
+
+Default sampler is [`PRS.generate_sample_prs`](@ref).
+"""
+function generate_sample(
+    pp::HardCoreGraph{T};
+    rng=-1
+)::Vector{T} where {T}
+    return generate_sample_prs(pp; rng=rng)
+end
+
 ## Partial Rejeciton Sampling (PRS)
 
 """
     generate_sample_prs(
-        hcg::HardCoreGraph{T};
+        pp::HardCoreGraph{T};
         rng=-1
     )::Vector{T} where {T}
 
@@ -59,15 +75,15 @@ Sample from [`PRS.HardCoreGraph`](@ref) using Partial Rejection Sampling (PRS), 
 - Example 4.1 of [MoKr20](@ref)
 """
 function generate_sample_prs(
-    hcg::HardCoreGraph{T};
+    pp::HardCoreGraph{T};
     rng=-1
 )::Vector{T} where {T}
 
-    proba = hcg.β / (one(hcg.β) + hcg.β)
+    proba = pp.β / (one(pp.β) + pp.β)
 
     rng = getRNG(rng)
-    adj = LG.adjacency_matrix(hcg.graph)
-    occupied = randsubseq(rng, LG.vertices(hcg.graph), proba)
+    adj = LG.adjacency_matrix(pp.graph)
+    occupied = randsubseq(rng, LG.vertices(pp.graph), proba)
     while true
         # Check if occupied vertices form an independent set
         sub_graph = LG.SimpleGraph(adj[occupied, occupied])
@@ -80,7 +96,7 @@ function generate_sample_prs(
             else  # Construct the resampling set of vertices
                 union!(resample, occupied[cc])
                 for v in cc
-                    union!(resample, LG.neighbors(hcg.graph, occupied[v]))
+                    union!(resample, LG.neighbors(pp.graph, occupied[v]))
                 end
             end
         end

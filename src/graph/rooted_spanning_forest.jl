@@ -1,9 +1,14 @@
 """
     RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
 
-RootedSpanningForest is a point process defined on the edges of a `graph` ``=(V, E)`` characterizing the uniform distribution of the [spanning forests](https://en.wikipedia.org/wiki/Spanning_tree) of `graph` rooted at `roots`
+Concrete type reprensenting a point process defined on the edges of a `graph` characterizing the uniform distribution on the [spanning forests](https://en.wikipedia.org/wiki/Spanning_tree) of `graph` rooted at `roots`.
 
 It can be viewed as a the product distribution of the uniform distribution on the set of neighbors of each vertex conditioned on forming no cycles.
+
+The object has two fields:
+
+- `graph::LG.SimpleGraph{Int64}`
+- `roots::Set{Int64}`
 
 **See also**
 
@@ -33,27 +38,39 @@ function RootedSpanningForest(
 end
 
 """
+    generate_sample(
+        pp::RootedSpanningForest{T};
+        rng=-1
+    )
+
+Generate an exact sample from the [`PRS.RootedSpanningForest`](@ref).
+
+Default sampler is [`PRS.generate_sample_prs`](@ref).
+"""
+generate_sample(pp::RootedSpanningForest; rng=-1) = generate_sample_prs(pp; rng=rng)
+
+"""
     generate_sample_prs(
-            rsf::RootedSpanningForest{T};
-            rng=-1
+        pp::RootedSpanningForest{T};
+        rng=-1
     )::T where {T<:LG.SimpleDiGraph{Int64}}
 
-Generate a rooted spanning forest of `rsf.graph`, uniformly at random among all rooted spanning forests rooted at `rsf.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
+Generate a rooted spanning forest of `pp.graph`, uniformly at random among all rooted spanning forests rooted at `pp.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
 """
 function generate_sample_prs(
-        rsf::RootedSpanningForest{T};
-        rng=-1
+    pp::RootedSpanningForest{T};
+    rng=-1
 )::T where {T<:LG.SimpleDiGraph{Int64}}
-    return _generate_sample_rooted_spanning_forest_prs(rsf.graph, rsf.roots; rng=rng)
+    return _generate_sample_rooted_spanning_forest_prs(pp.graph, pp.roots; rng=rng)
 end
 
 """
 Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
 """
 function _generate_sample_rooted_spanning_forest_prs(
-        graph::LG.SimpleGraph{T},
-        roots;
-        rng=-1
+    graph::LG.SimpleGraph{T},
+    roots;
+    rng=-1
 )::LG.SimpleDiGraph{T} where {T}
     rng = getRNG(rng)
     g = random_neighbor_assignment(graph, roots; rng=rng)

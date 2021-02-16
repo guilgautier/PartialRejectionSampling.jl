@@ -1,46 +1,47 @@
 """
-Implementation of dominated Coupling From The Past (dCFTP)
-- [KeMo99](@cite) and [KeMo00](@cite) orginal formulation of dCFTP
+Implementation of dominated Coupling From The Past (dCFTP) developed by [KeMo99](@cite) and [KeMo00](@cite)
+
+**See also**
+
 - [Hub16](@cite)
 - [Kendall's notes on perfect simulation](https://warwick.ac.uk/fac/sci/statistics/staff/  academic-research/kendall/personal/ppt/428.pdf)
 """
 
 @doc raw"""
-    papangelou_conditional_intensity(pp, x, X)
+    papangelou_conditional_intensity(pp::AbstractSpatialPointProcess, x, X)
 
-Compute the [Papangelou conditional intensity](https://en.wikipedia.org/wiki/Point_process#Papangelou_intensity_function) of the point process `pp`, as the ratio of densities ``\frac{f(X \cup x)}{f(X)}``.
+Compute the [Papangelou conditional intensity](https://en.wikipedia.org/wiki/Point_process#Papangelou_intensity_function) of `pp`, as the ratio of densities ``\frac{f(X \cup x)}{f(X)}``.
 
 **See also**
 
 - Section 6.1.1 [MoWa04](@cite)
-- [wiki](https://en.wikipedia.org/wiki/Point_process#Papangelou_intensity_function)
 """
-function papangelou_conditional_intensity end
+function papangelou_conditional_intensity(pp::AbstractSpatialPointProcess, x, X) end
 
 """
-    upper_bound_papangelou_conditional_intensity
+    upper_bound_papangelou_conditional_intensity(pp::AbstractSpatialPointProcess)
 
-Compute an upper bound of [`papangelou_conditional_intensity`](@ref)
+Compute an upper bound on the [`papangelou_conditional_intensity`](@ref) of `pp`
 
 **See also**
 
 - Equation 2.1 [KeMo99](@cite)
 """
-function upper_bound_papangelou_conditional_intensity end
+function upper_bound_papangelou_conditional_intensity(pp::AbstractSpatialPointProcess) end
 
 """
-    isrepulsive
+    isrepulsive(pp::AbstractSpatialPointProcess)
 
-Property of a [`PRS.AbstractSpatialPointProcess`](@ref) used in [`generate_sample_dcftp`](@ref).
+Property of a [`PRS.AbstractSpatialPointProcess`](@ref).
 """
-function isrepulsive end
+function isrepulsive(pp::AbstractSpatialPointProcess) end
 
 """
-    isattractive
+    isattractive(pp::AbstractSpatialPointProcess)
 
-Property of a [`PRS.AbstractSpatialPointProcess`](@ref) used in [`generate_sample_dcftp`](@ref).
+Property of a [`PRS.AbstractSpatialPointProcess`](@ref).
 """
-function isattractive end
+function isattractive(pp::AbstractSpatialPointProcess) end
 
 """
     generate_sample_dcftp(
@@ -50,9 +51,9 @@ function isattractive end
         rng=-1
     )::Vector{T} where {T}
 
-Generate an exact sample from a spatial point process `pp` on window optional window `win` using dominated coupling from the past.
+Generate an exact sample from a spatial point process `pp` on window `win` using dominated coupling from the past.
 
-- Default window is `window(pp)=pp.window`
+- Default window (`win=nothing`) is `window(pp)=pp.window`
 - Initial coalescence check performed after `n₀` steps.
 - Seed or random number generator is passed via `rng`.
 

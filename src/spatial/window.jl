@@ -1,59 +1,3 @@
-"""
-Abstract type representing a window
-
-**See also**
-
-- [`PRS.AbstractDiscreteWindow`](@ref)
-- [`PRS.AbstractSpatialWindow`](@ref)
-"""
-abstract type AbstractWindow end
-
-# Discrete
-
-"""
-Abstract type representing a window on a discrete state space
-
-**See also**
-
-- [`PRS.GraphNode`](@ref)
-"""
-abstract type AbstractDiscreteWindow{T} <: AbstractWindow end
-
-"""
-    GraphNode{T<:Int64} <: AbstractDiscreteWindow{T}
-
-Structure with unique field `idx` representing the index of the vertex of a graph
-"""
-struct GraphNode{T<:Int64} <: AbstractDiscreteWindow{T}
-    # Corner
-    idx::T
-end
-
-"""
-    GraphNode(idx::T) where {T<:Int}
-
-Construct a [`GraphNode`](@ref)
-"""
-function GraphNode(idx::T) where {T<:Int}
-    return GraphNode{T}(idx)
-end
-
-# Spatial
-
-@doc raw"""
-    AbstractSpatialWindow{T<:Float64} <: AbstractWindow{T}
-
-Abstract type representing a spatial window ``\subseteq \mathbb{R}^d``
-
-**See also**
-
-- [`PRS.AbstractRectangleWindow`](@ref)
-    - [`PRS.RectangleWindow`](@ref)
-    - [`PRS.SquareWindow`](@ref)
-- [`PRS.BallWindow`](@ref)
-"""
-abstract type AbstractSpatialWindow{T<:Float64} <: AbstractWindow end
-
 @doc raw"""
     AbstractRectangleWindow{T<:Float64} <: AbstractSpatialWindow{T}
 
@@ -149,28 +93,19 @@ function BallWindow(c::AbstractVector, r::Real=1.0)
 end
 
 """
-    dimension(win::GraphNode) = 0
-"""
-dimension(win::GraphNode) = 0
-
-"""
     dimension(win::AbstractSpatialWindow) = length(win.c)
 
 Return the dimension of window `win`
 """
 dimension(win::AbstractSpatialWindow) = length(win.c)
 
-"""
-    volume(win::GraphNode) = 0
-"""
-volume(win::GraphNode) = 0
 
-@doc raw"""
+"""
     volume(win::RectangleWindow) = prod(win.w)
 """
 volume(win::RectangleWindow) = prod(win.w)
 
-@doc raw"""
+"""
     volume(win::SquareWindow) = win.w^dimension(win)
 """
 volume(win::SquareWindow) = win.w^dimension(win)
@@ -240,7 +175,7 @@ end
         win::AbstractRectangleWindow{T},
         n::Int;
         rng=-1
-    )::Vector{T} where {T}
+    )::Matrix{T} where {T}
 
 Sample `n` points uniformly at random in window `win`
 """
@@ -280,7 +215,7 @@ end
         win::BallWindow{T},
         n::Int;
         rng=-1
-    )::Vector{T} where {T}
+    )::Matrix{T} where {T}
 
 Sample `n` points uniformly at random in window `win`
 """

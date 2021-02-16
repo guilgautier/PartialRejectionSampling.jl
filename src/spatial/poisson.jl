@@ -26,32 +26,32 @@ function HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
 end
 
 """
-    intensity(hp::HomogeneousPoissonPointProcess) = hp.β
+    intensity(pp::HomogeneousPoissonPointProcess) = pp.β
 """
-intensity(hp::HomogeneousPoissonPointProcess) = hp.β
+intensity(pp::HomogeneousPoissonPointProcess) = pp.β
 
 ## Sampling
 
 """
     generate_sample(
-        hp::HomogeneousPoissonPointProcess{Vector{Float64}};
+        pp::HomogeneousPoissonPointProcess{Vector{T}};
         win::Union{Nothing,AbstractWindow}=nothing,
         rng=-1
-    )::Matrix{Float64}
+    )::Matrix{T} where {T<:Float64}
 
-Generate a sample from [`PRS.HomogeneousPoissonPointProcess`](@ref) on window `win`.
+Generate an exact sample from [`PRS.HomogeneousPoissonPointProcess`](@ref) on window `win`.
 Sampled points are stored as columns of the output matrix.
 
-Default window (`win=nothing`) is `window(hp)`.
+Default window (`win=nothing`) is `window(pp)`.
 """
 function generate_sample(
-        hp::HomogeneousPoissonPointProcess{Vector{T}};
+        pp::HomogeneousPoissonPointProcess{Vector{T}};
         win::Union{Nothing,AbstractWindow}=nothing,
         rng=-1
 )::Matrix{T} where {T<:Float64}
     rng = getRNG(rng)
-    window_ = win === nothing ? window(hp) : win
-    n = rand(rng, Distributions.Poisson(hp.β * volume(window_)))
+    window_ = win === nothing ? window(pp) : win
+    n = rand(rng, Distributions.Poisson(pp.β * volume(window_)))
     return rand(window_, n; rng=rng)
 end
 
@@ -64,7 +64,7 @@ end
         rng=-1
     )::Matrix{Float64}
 
-Generate a sample from a homogenous [`PRS.HomogeneousPoissonPointProcess`](@ref) Poisson(β) on ``\bigcup_{i} B(c_i, r)`` (union of balls centered at ``c_i`` with the same radius ``r``).
+Generate an exact sample from a homogenous [`PRS.HomogeneousPoissonPointProcess`](@ref) Poisson(β) on ``\bigcup_{i} B(c_i, r)`` (union of balls centered at ``c_i`` with the same radius ``r``).
 
 If `win ≂̸ nothing`, returns the points falling in `win`.
 

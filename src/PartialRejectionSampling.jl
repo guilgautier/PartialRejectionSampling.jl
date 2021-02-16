@@ -52,26 +52,26 @@ export generate_sample,
 # Code inclusions
 
 include("common.jl")
-
 include("utils.jl")
-include("window.jl")
 
-# sampling
-include("dominated_cftp.jl")
+include(joinpath("spatial", "window.jl"))
+include(joinpath("graph", "window.jl"))
+
 include("grid_prs.jl")
 
-# Spatial point processes
-include("poisson.jl")
-include("strauss.jl")
-include("hard_core_spatial.jl")
+## Spatial point processes
+include(joinpath("spatial", "dominated_cftp.jl"))
+include(joinpath("spatial", "poisson.jl"))
+include(joinpath("spatial", "hard_core.jl"))
+include(joinpath("spatial", "strauss.jl"))
 
-# Graph point processes
-include("ising.jl")
-include("hard_core_graph.jl")
-include("rooted_spanning_forest.jl")
-include("sink_free_graph.jl")
+## Graph point processes
+include(joinpath("graph", "ising.jl"))
+include(joinpath("graph", "hard_core.jl"))
+include(joinpath("graph", "rooted_spanning_forest.jl"))
+include(joinpath("graph", "sink_free_graph.jl"))
 
 # Misc
-include("pattern_free_string.jl")
+include(joinpath("misc", "pattern_free_string.jl"))
 
 end

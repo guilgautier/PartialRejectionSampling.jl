@@ -20,7 +20,7 @@ function generate_sample_gibbs_perfect(
 
     while !isempty(R)
         i = rand(rng, R)
-        if bayes_filter(ising, state, i, R; rng=-1)
+        if bayes_filter(ising, state, i, R; rng=rng)
             generate_sample_conditional!(state, i, ising; rng=rng)
             delete!(R, i)
         else
@@ -39,15 +39,7 @@ end
         rng=-1
     ) where {T<:Int}
 
-Generate an exact sample from the marginal distribution of each states of the [`Ising`](@ref) model `ising` at the prescribed `indices`
-
-```math
-    x_i
-        \sim
-        \operatorname{Bernoulli}_{-1, 1}
-            (\sigma(h_i)),
-```
-where ``\sigma`` denotes the [`sigmoid`](@ref) function.
+Generate an exact sample from the marginal distribution of each states of the [`Ising`](@ref) model `ising` at the prescribed `indices`.
 """
 function generate_sample!(
     state::AbstractVector{T},

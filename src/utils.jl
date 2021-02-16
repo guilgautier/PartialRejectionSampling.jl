@@ -40,6 +40,27 @@ end
 
 ## Graph functions
 
+@doc raw"""
+    uniform_weighted_graph(
+        graph::LG.AbstractGraph;
+        rng=-1
+    )::SWG.SimpleWeightedGraph
+
+Return a weighted version of `graph` where each edge is attached an independent uniform random variable.
+"""
+function uniform_weighted_graph(
+    graph::LG.AbstractGraph;
+    rng=-1
+)::SWG.SimpleWeightedGraph
+    rng = getRNG(rng)
+    g = SWG.SimpleWeightedGraph(graph)
+    for e in LG.edges(g)
+        i, j = Tuple(e)
+        @inbounds g.weights[i, j] = g.weights[j, i] = rand(rng, weighttype(g))
+    end
+    return g
+end
+
 edgemap(g::LG.AbstractGraph) = Dict(LG.edges(g) .=> 1:LG.ne(g))
 sink_nodes(g::LG.SimpleDiGraph) = [v for v in LG.vertices(g) if LG.outdegree(g, v) == 0]
 

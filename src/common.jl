@@ -12,6 +12,13 @@ abstract type AbstractPointProcess{T} end
 Base.eltype(pp::AbstractPointProcess{T}) where {T} = T
 
 @doc raw"""
+    AbstractGraphPointProcess{T<:Vector{Float64}} <: AbstractPointProcess{T}
+
+Abstract type encoding point processes defined on graphs
+"""
+abstract type AbstractGraphPointProcess{T} <: AbstractPointProcess{T} end
+
+@doc raw"""
     AbstractSpatialPointProcess{T<:Vector{Float64}} <: AbstractPointProcess{T}
 
 Abstract type encoding point processes defined on ``\mathbb{R}^d``.
@@ -21,28 +28,48 @@ Concrete instances must have a `window` field of type [`PRS.AbstractSpatialWindo
 abstract type AbstractSpatialPointProcess{T<:Vector{Float64}} <: AbstractPointProcess{T} end
 
 """
-    window(pp::AbstractSpatialPointProcess) = pp.window
+    window(pp::AbstractSpatialPointProcess)::AbstractSpatialWindow = pp.window
 """
-window(pp::AbstractSpatialPointProcess) = pp.window
+function window(pp::AbstractSpatialPointProcess)::AbstractSpatialWindow
+    return pp.window
+end
 
 """
     dimension(pp::AbstractSpatialPointProcess) = dimension(window(pp))
 
-**See also**
-    - [`window`](@ref)
+**See also** [`window`](@ref)
 """
 dimension(pp::AbstractSpatialPointProcess) = dimension(window(pp))
 
-abstract type AbstractGraphPointProcess{T} <: AbstractPointProcess{T} end
+"""
+Abstract type representing a window
 
-# Default methods
+**See also**
+
+- [`PRS.AbstractDiscreteWindow`](@ref)
+- [`PRS.AbstractSpatialWindow`](@ref)
+"""
+abstract type AbstractWindow end
+
+@doc raw"""
+    AbstractSpatialWindow{T<:Float64} <: AbstractWindow{T}
+
+Abstract type representing a spatial window ``\subseteq \mathbb{R}^d``
+
+**See also**
+
+- [`PRS.AbstractRectangleWindow`](@ref)
+    - [`PRS.RectangleWindow`](@ref)
+    - [`PRS.SquareWindow`](@ref)
+- [`PRS.BallWindow`](@ref)
+"""
+abstract type AbstractSpatialWindow{T<:Float64} <: AbstractWindow end
 
 """
-Default exact sampling method
-"""
-function generate_sample end
+Abstract type representing a window on a discrete state space
 
+**See also**
+
+- [`PRS.GraphNode`](@ref)
 """
-Default exact sampling method using Partial Rejection Sampling (PRS, [GuJeLi19](@cite))
-"""
-function generate_sample_prs end
+abstract type AbstractDiscreteWindow{T} <: AbstractWindow end

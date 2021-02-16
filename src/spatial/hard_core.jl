@@ -58,12 +58,15 @@ interaction_range(pp::HardCorePointProcess) = pp.r
 
 """
     generate_sample(
-        pp::HardCorePointProcess{T};
+        pp::HardCorePointProcess{T}
         win::Union{Nothing,AbstractWindow}=nothing,
         rng=-1
     )::Vector{T} where {T}
 
 Generate an exact sample from the [`PRS.HardCorePointProcess`](@ref).
+
+Default window (`win=nothing`) is `window(pp)=pp.window`.
+
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 
 **See also**
@@ -97,12 +100,14 @@ isattractive(pp::HardCorePointProcess) = false
         X::Union{AbstractVector{Vector{T}},AbstractSet{Vector{T}}}
     )::Real where {T}
 
-Compute
+Compute the [Papangelou conditional intensity](https://en.wikipedia.org/wiki/Point_process#Papangelou_intensity_function) of the point process `pp`
+
 ```math
     \beta
-    \prod_{y\in X} 1_{\left\| x - y \right\|_2 > r\}},
+    \prod_{y\in X} 1_{\{\left\| x - y \right\|_2 > r\}},
 ```
-where ``\beta=`` `pp.β`` and ``r=`` `pp.r`.
+
+where ``\beta=`` `pp.β` and ``r=`` `pp.r`.
 """
 function papangelou_conditional_intensity(
     pp::HardCorePointProcess{Vector{T}},
@@ -123,17 +128,23 @@ upper_bound_papangelou_conditional_intensity(pp::HardCorePointProcess) = intensi
 
 """
     generate_sample_prs(
-            pp::HardCorePointProcess{T};
-            win::Union{Nothing,AbstractWindow}=nothing,
-            rng=-1
-    )::Vector{T} where {T}
-
-Sample from [`PRS.HardCorePointProcess`](@ref) using Partial Rejection Sampling (PRS) of [GuJe18](@cite)
-"""
-function generate_sample_prs(
-        pp::HardCorePointProcess{T};
+        pp::HardCorePointProcess{T}
         win::Union{Nothing,AbstractWindow}=nothing,
         rng=-1
+    )::Vector{T} where {T}
+
+Sample from [`PRS.HardCorePointProcess`](@ref) using Partial Rejection Sampling (PRS) of [GuJe18](@cite).
+
+Default window (`win=nothing`) is `window(pp)=pp.window`.
+
+**See also**
+- [`PRS.generate_sample_dcftp`](@ref)
+- [`PRS.generate_sample_grid_prs`](@ref).
+"""
+function generate_sample_prs(
+    pp::HardCorePointProcess{T};
+    win::Union{Nothing,AbstractWindow}=nothing,
+    rng=-1
 )::Vector{T} where {T}
     rng = getRNG(rng)
     win_ = win === nothing ? window(pp) : win
@@ -145,7 +156,7 @@ function generate_sample_prs(
         !any(bad) && break
         resampled = generate_sample_poisson_union_balls(β, points[:, bad], r;
                                                         win=win_, rng=rng)
-        points = ppat(points[:, .!bad], resampled)
+        points = hcat(points[:, .!bad], resampled)
     end
     return collect(T, eachcol(points))
 end

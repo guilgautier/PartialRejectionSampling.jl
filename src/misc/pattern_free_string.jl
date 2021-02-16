@@ -21,31 +21,31 @@ end
 
 """
     generate_sample(
-        psf::PatternFreeString{T},
+        pfs::PatternFreeString{T},
         size::Int;
         rng=-1
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `psf.alphabet` with no occurence of the pattern `psf.pattern`.
+Generate a string uniformly at random among all strings made of characters from `pfs.alphabet` with no occurence of the pattern `pfs.pattern`.
 
-Default sampler is [`PRS.generate_sample_prs`](@ref)
+Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
 function generate_sample(
-        psf::PatternFreeString{T},
+        pfs::PatternFreeString{T},
         size::Int;
         rng=-1
-)::T where {T<:String}
-    return generate_sample_prs(psf, size; rng=rng)
+)::T where {T}
+    return generate_sample_prs(pfs, size; rng=rng)
 end
 
 """
     generate_sample_prs(
-        psf::PatternFreeString{T},
+        pfs::PatternFreeString{T},
         size::Int;
         rng=-1
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `psf.alphabet` with no occurence of the pattern `psf.pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite)
+Generate a string uniformly at random among all strings made of characters from `pfs.alphabet` with no occurence of the pattern `pfs.pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite)
 """
 function generate_sample_prs(
         pfs::PatternFreeString{T},

@@ -68,7 +68,10 @@ interaction_range(pp::StraussPointProcess) = pp.r
     )::Vector{T} where {T}
 
 Genererate an exact sample from [`PRS.StraussPointProcess`](@ref).
-Default sampler is [`PRS.generate_sample_dcftp`](@ref)
+
+Default window (`win=nothing`) is `window(pp)=pp.window`.
+
+Default sampler is [`PRS.generate_sample_dcftp`](@ref).
 
 **See also**
 - [`PRS.generate_sample_grid_prs`](@ref).
@@ -105,13 +108,15 @@ isattractive(pp::StraussPointProcess) = false
         X::Union{AbstractVector{Vector{T}}, AbstractSet{Vector{T}}}
     )::Real where {T}
 
-Compute
+Compute the [Papangelou conditional intensity](https://en.wikipedia.org/wiki/Point_process#Papangelou_intensity_function) of the point process `pp`
+
 ```math
     \beta
-    \gamma^{|y \in X ~;~ \left\| x - y \right\|_2 \leq r\}|}
+    \gamma^{|\{y \in X ~;~ \left\| x - y \right\|_2 \leq r\}|}
     ~ 1_{x \notin X},
 ```
-where ``\beta=`` `pp.β``, ``\gamma=`` `pp.γ`` and ``r=`` `pp.r`.
+
+where ``\beta=`` `pp.β`, ``\gamma=`` `pp.γ` and ``r=`` `pp.r`.
 """
 function papangelou_conditional_intensity(
     pp::StraussPointProcess{Vector{T}},
@@ -141,7 +146,10 @@ upper_bound_papangelou_conditional_intensity(pp::StraussPointProcess) = intensit
         rng=-1
     )::Vector{T} where {T}
 
-Genererate an exact sample from [`PRS.StraussPointProcess`](@ref) using partial rejection sampling (PRS).
+Genererate an exact sample from [`PRS.StraussPointProcess`](@ref) using Partial Rejection Sampling (PRS).
+
+Default window (`win=nothing`) is `window(pp)=pp.window`.
+
 Default sampler is [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample_prs(

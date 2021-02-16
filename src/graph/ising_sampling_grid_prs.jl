@@ -6,19 +6,13 @@
         rng=-1
     )::SWG.SimpleWeightedGraph
 
-Return a weighted version of `ising.graph` where the weight of each edge is a uniform random variable.
+Return a weighted version of `ising.graph` where each edge is attached an independent uniform random variable.
 """
 function weighted_interaction_graph(
     ising::Ising;
     rng=-1
 )::SWG.SimpleWeightedGraph
-    rng = getRNG(rng)
-    g = SWG.SimpleWeightedGraph(ising.graph)
-    for e in LG.edges(g)
-        i, j = Tuple(e)
-        @inbounds g.weights[i, j] = g.weights[j, i] = rand(rng, weighttype(g))
-    end
-    return g
+    return uniform_weighted_graph(ising.graph; rng=rng)
 end
 
 @doc raw"""
@@ -28,7 +22,7 @@ end
 
 Each node of `ising.graph` is considered as `cell` of type [`GraphCellGridPRS`](@ref) such that `cell.window` is a [`GraphNode`](@ref) and `cell.value` initialized to `zero(T)`
 
-This function is used as a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
+This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref)..
 """
 function initialize_cells(
     ising::Ising{T}
@@ -36,32 +30,15 @@ function initialize_cells(
     return [GraphCellGridPRS(GraphNode(i), zero(T)) for i in 1:LG.nv(ising.graph)]
 end
 
-@doc raw"""
-    generate_sample!(
-        cell::GraphCellGridPRS,
-        ising::Ising;
-        rng=-1
-    )
-
-Generate an exact sample from the marginal distribution of state of the [`Ising`](@ref) model `ising`, at index `cell.window.idx`.
-
-More specifically
-```math
-    x_i
-        \sim
-        \operatorname{Bernoulli}_{-1, 1}
-            (\sigma(h_i)),
-```
-where ``\sigma`` denotes the [`sigmoid`](@ref) function.
 """
-function generate_sample!(
-    cell::GraphCellGridPRS,
-    ising::Ising;
+Generate an exact sample from the marginal distribution of `pp` at state indexed by `win.idx`.
+"""
+function generate_sample(
+    pp::Ising;
+    win::GraphNode,
     rng=-1
 )
-    rng = getRNG(rng)
-    hᵢ = ising.h isa Number ? ising.h : ising.h[cell.win.idx]
-    cell.value = rand(rng) < sigmoid(hᵢ) ? 1 : -1
+    return generate_sample(pp, win.idx; rng=rng)
 end
 
 @doc raw"""
@@ -72,14 +49,13 @@ end
     )::Real where {T}
 
 Compute the Gibbs interaction of [`Ising`](@ref)
+
 ```math
     \exp(J x_i x_j - |J|))
 
 ```
 
-**Note**
-
-The Gibbs interaction is normalized in be in [0, 1] to fit the framework of [MoKr20](@cite) and [FeViYi](@cite)
+**Note** the Gibbs interaction is normalized in be in [0, 1] to fit the framework of [MoKr20](@cite) and [FeViYi19](@cite).
 """
 function gibbs_interaction(
     ising::Ising{T},
@@ -103,7 +79,7 @@ Given the states of `xᵢ` and `xⱼ`, check whether a new assigment of ``U_{ij}
     U_{ij} > \exp(J x_i x_j - |J|))
 ```
 
-This function is used as a subroutine of [`PRS.generate_sample_grid_prs`](@ref)
+This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function is_inner_interaction_possible(
     ising::Ising{T},
@@ -127,7 +103,7 @@ Given the state of `xᵢ`, one can always find a new assigment of `xⱼ` and/or 
     U_{ij} > \exp(J x_i x_j - |J|))
 ```
 
-This function is used as a subroutine of [`PRS.generate_sample_grid_prs`](@ref)
+This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function is_outer_interaction_possible(
     ising::Ising{T},
