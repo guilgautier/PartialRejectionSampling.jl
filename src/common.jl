@@ -36,8 +36,6 @@ end
 
 """
     dimension(pp::AbstractSpatialPointProcess) = dimension(window(pp))
-
-**See also** [`window`](@ref)
 """
 dimension(pp::AbstractSpatialPointProcess) = dimension(window(pp))
 
