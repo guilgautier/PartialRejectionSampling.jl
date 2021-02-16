@@ -1,5 +1,8 @@
 # PartialRejectionSampling.jl
 
+<!-- [![][docs-stable-img]][docs-stable-url]  -->
+[![][docs-dev-img]][docs-dev-url]
+
 Some implementations of partial rejection samplers for
 
 - Rooted spanning forests
@@ -25,3 +28,9 @@ For now, examples are located in the `test` folder.
 Building a proper documentation is work in progress.
 
 Any feedback is welcome :)
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://guilgautier.github.io/PartialRejectionSampling.jl/dev
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://guilgautier.github.io/PartialRejectionSampling.jl/stable
