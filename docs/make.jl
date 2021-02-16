@@ -19,3 +19,7 @@ makedocs(
         ]
     # doctest=:fix  # = false to skip doctests
 )
+
+deploydocs(
+    repo="github.com/guilgautier/PartialRejectionSampling.jl.git",
+)
