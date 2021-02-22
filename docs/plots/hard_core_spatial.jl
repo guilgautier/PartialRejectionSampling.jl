@@ -1,5 +1,5 @@
-using PartialRejectionSampling
-const PRS = PartialRejectionSampling
+# const PRS = PartialRejectionSampling, Plots, GraphPlot, Colors, LS = LazySets, LG = LightGraphs
+includet("docs/plots/pedagogy_spatial.jl")
 
 β₀ = 0.1
 r = 0.05  # interaction range = 2*radius
@@ -10,8 +10,8 @@ win = PRS.SquareWindow(c, w)
 
 hc = PRS.HardCorePointProcess(b, r, win)
 
-seed = -1
+seed = 123
 @time sample = PRS.generate_sample_prs(hc; rng=seed)
 # @time sample = PRS.generate_sample_grid_prs(hc; rng=seed)
 
-p = PRS.plot(hc, sample; title="")
+p = plot(hc, sample; title="")
