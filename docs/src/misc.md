@@ -1,4 +1,4 @@
-## Pattern Free String
+# Pattern free string
 
 ```@autodocs
 Modules = [PartialRejectionSampling]

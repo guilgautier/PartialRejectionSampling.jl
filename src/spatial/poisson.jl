@@ -19,6 +19,18 @@ end
     HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
 
 Construct a [`PRS.HomogeneousPoissonPointProcess`](@ref) with intensity `β` restricted to `window`.
+
+```jldoctest; output = true
+using PartialRejectionSampling
+
+β = 40
+win = PRS.SquareWindow(zeros(2), 1)
+hc = PRS.HomogeneousPoissonPointProcess(β, win)
+
+# output
+
+HomogeneousPoissonPointProcess{Array{Float64,1}}(40.0, SquareWindow{Float64}([0.0, 0.0], 1.0))
+```
 """
 function HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
     @assert β > 0

@@ -35,6 +35,25 @@ end
     StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatialWindow)
 
 Construct a [`PRS.StraussPointProcess`](@ref) with intensity `β`, interaction coefficient `γ`, and interaction range `r`, restricted to `window`.
+
+```jldoctest; output = true
+using PartialRejectionSampling
+
+β, γ, r = 2.0, 0.2, 0.7
+win = PRS.SquareWindow([0.0, 0.0], 10.0)
+
+strauss = PRS.StraussPointProcess(β, γ, r, win)
+
+# output
+
+StraussPointProcess{Array{Float64,1}}(2.0, 0.2, 0.7, SquareWindow{Float64}([0.0, 0.0], 10.0))
+
+# Example
+
+A illustration of the procedure for ``\beta=78, \gamma=0.1`` and ``r=0.07`` on ``[0, 1]^2`` where points are marked with a circle of radius ``r/2``.
+
+![assets/strauss_spatial_prs.gif](assets/strauss_spatial_prs.gif)
+```
 """
 function StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatialWindow)
     @assert β > 0

@@ -12,7 +12,13 @@ The object has two fields:
 
 **See also**
 
-Section 4.2 of [GuJeLi19](@cite)
+Section 4.2 of [GuJeLi19](@cite).
+
+# Example
+
+A realization from a ``5\\times 5`` grid graph with `roots=[13]`.
+
+![assets/rooted_spanning_tree.png](assets/rooted_spanning_tree.png)
 """
 struct RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
     "Graph"
@@ -25,15 +31,30 @@ end
     RootedSpanningForest(
         graph::LG.SimpleGraph{T},
         roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
-    ) where {T<:Integer}
+    ) where {T<:Int}
 
-Construct a [`RootedSpanningForest`](@ref) model on `graph`, rooted at `roots`
+Construct a [`RootedSpanningForest`](@ref) model on `graph`, rooted at `roots`.
+If `roots === nothing`, a random vertex is selected uniformly at random among `LG.vertices(g)` and considered as `roots`.
+
+```jldoctest; output = true
+using PartialRejectionSampling
+using LightGraphs; const LG = LightGraphs
+
+g, roots = LG.grid([5, 5]), [1, 2, 3]
+
+rsf = PRS.RootedSpanningForest(g, roots)
+
+# output
+
+RootedSpanningForest{SimpleDiGraph{Int64}}({25, 40} undirected simple Int64 graph, Set([2, 3, 1]))
+```
 """
 function RootedSpanningForest(
     graph::LG.SimpleGraph{T},
     roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
-) where {T<:Integer}
+) where {T<:Int}
     roots_ = Set(roots === nothing ? rand(1:LG.nv(graph)) : roots)
+    !issubset(roots_, LG.vertices(graph)) && throw(DomainError(root_, "some roots not contained in vertices(graph)"))
     return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
 end
 
@@ -55,7 +76,13 @@ generate_sample(pp::RootedSpanningForest; rng=-1) = generate_sample_prs(pp; rng=
         rng=-1
     )::T where {T<:LG.SimpleDiGraph{Int64}}
 
-Generate a rooted spanning forest of `pp.graph`, uniformly at random among all rooted spanning forests rooted at `pp.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
+Generate a rooted spanning forest of `pp.graph`, uniformly at random among all rooted spanning forests rooted at `pp.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite).
+
+# Example
+
+An illustration of the procedure on a ``5\\times 5`` grid graph, with `roots=[13]`
+
+![assets/rooted_spanning_tree_prs.gif](assets/rooted_spanning_tree_prs.gif)
 """
 function generate_sample_prs(
     pp::RootedSpanningForest{T};
@@ -65,7 +92,7 @@ function generate_sample_prs(
 end
 
 """
-Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite)
+Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite).
 """
 function _generate_sample_rooted_spanning_forest_prs(
     graph::LG.SimpleGraph{T},

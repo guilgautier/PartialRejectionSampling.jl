@@ -14,7 +14,7 @@ makedocs(
         "Sampling methods"          => "sampling.md",
         "Graph point processes"     => "graph.md",
         "Spatial point processes"   => "spatial.md",
-        "Misc"                      => "pattern_free_string.md",
+        "Miscellaneous"             => "misc.md",
         "References"                => "references.md"
         ]
     # doctest=:fix  # = false to skip doctests

@@ -47,10 +47,8 @@ function generate_sample!(
     ising::Ising{T};
     rng=-1
 ) where {T<:Int}
-    rng = getRNG(rng)
     for i in indices
-        hᵢ = ising.h isa Number ? ising.h : ising.h[i]
-        state[i] = rand(rng) < sigmoid(hᵢ) ? 1 : -1
+        state[i] = generate_sample(ising, i; rng=rng)
     end
 end
 

@@ -19,6 +19,12 @@ where ``\beta > 0`` is called the background intensity and ``r > 0`` the interac
 **See also**
 
 - [`PRS.HardCoreGraph`](@ref), the graph counterpart of [`PRS.HardCorePointProcess`](@ref)
+
+# Example
+
+A realization for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2``
+
+![assets/hard_core_spatial.png](assets/hard_core_spatial.png)
 """
 struct HardCorePointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
     "Intensity"
@@ -32,6 +38,18 @@ end
     HardCorePointProcess(β::Real, r::Real, window::AbstractSpatialWindow)
 
 Construct a [`PRS.HardCorePointProcess`](@ref) with intensity `β` and interaction range `r`, restricted to `window`.
+
+```jldoctest; output = true
+using PartialRejectionSampling
+
+β, r = 40, 0.05
+win = PRS.SquareWindow(zeros(2), 1)
+hc = PRS.HardCorePointProcess(β, r, win)
+
+# output
+
+HardCorePointProcess{Array{Float64,1}}(40.0, 0.05, SquareWindow{Float64}([0.0, 0.0], 1.0))
+```
 """
 function HardCorePointProcess(β::Real, r::Real, window::AbstractSpatialWindow)
     @assert β > 0
@@ -126,7 +144,7 @@ upper_bound_papangelou_conditional_intensity(pp::HardCorePointProcess) = intensi
 
 ### Partial Rejection Sampling
 
-"""
+@doc raw"""
     generate_sample_prs(
         pp::HardCorePointProcess{T}
         win::Union{Nothing,AbstractWindow}=nothing,
@@ -138,8 +156,15 @@ Sample from [`PRS.HardCorePointProcess`](@ref) using Partial Rejection Sampling 
 Default window (`win=nothing`) is `window(pp)=pp.window`.
 
 **See also**
+
 - [`PRS.generate_sample_dcftp`](@ref)
 - [`PRS.generate_sample_grid_prs`](@ref).
+
+# Example
+
+A illustration of the procedure for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2`` where points are marked with a circle of radius ``r/2``.
+
+![assets/hard_core_spatial_prs.gif](assets/hard_core_spatial_prs.gif)
 """
 function generate_sample_prs(
     pp::HardCorePointProcess{T};

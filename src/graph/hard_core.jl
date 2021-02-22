@@ -18,6 +18,12 @@ In other words, it can also be viewed as the product distribution ``\operatornam
 - Section 7.2 of [GuJeLi19](@cite)
 - Example 4.1 of [MoKr20](@ref)
 - [`PRS.HardCorePointProcess`](@ref), the spatial counterpart of [`PRS.HardCoreGraph`](@ref)
+
+# Example
+
+A realization from a ``5\times 5`` grid graph, with ``\beta = 0.5``.
+
+![assets/hard_core_graph.png](assets/hard_core_graph.png)
 """
 struct HardCoreGraph{T<:Integer} <: AbstractGraphPointProcess{T}
     "Graph"
@@ -32,6 +38,19 @@ end
     ) where {T<:Integer}
 
 Construct a [`HardCoreGraph`](@ref).
+
+```jldoctest; output = true
+using PartialRejectionSampling
+using LightGraphs; const LG = LightGraphs
+
+g, β = LG.grid([5, 5]), 1
+
+hcg = PRS.HardCoreGraph(g, β)
+
+# output
+
+HardCoreGraph{Int64}({25, 40} undirected simple Int64 graph, 1.0)
+```
 """
 function HardCoreGraph(
     graph::LG.SimpleGraph{T},
@@ -73,6 +92,12 @@ Sample from [`PRS.HardCoreGraph`](@ref) using Partial Rejection Sampling (PRS), 
 **See also**
 
 - Example 4.1 of [MoKr20](@ref)
+
+# Example
+
+An illustration of the procedure on a ``5\\times 5`` grid graph.
+
+![assets/hard_core_graph_prs.gif](assets/hard_core_graph_prs.gif)
 """
 function generate_sample_prs(
     pp::HardCoreGraph{T};

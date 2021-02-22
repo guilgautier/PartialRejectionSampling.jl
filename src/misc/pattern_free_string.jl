@@ -1,7 +1,7 @@
 """
     PatternFreeString{T<:String} <: AbstractPointProcess{T}
 
-Container with fields `alphabet` and `pattern` used to generate a string made of characters from `alphabet` avoiding the prescribed `pattern`
+Container with fields `alphabet` and `pattern` used to generate a string made of characters from `alphabet` avoiding the prescribed `pattern`.
 """
 struct PatternFreeString{T<:String} <: AbstractPointProcess{T}
     alphabet::Vector{T}
@@ -11,11 +11,23 @@ end
 """
     PatternFreeString(alphabet::Vector{String}, pattern::String)
 
-Construct a [`PatternFreeString`](@ref)
+Construct a [`PatternFreeString`](@ref).
+
+```jldoctest; output = true
+using PartialRejectionSampling
+PRS.PatternFreeString(["A", "C", "G", "T"], "ATGTA")
+
+# output
+
+PatternFreeString{String}(["A", "C", "G", "T"], "ATGTA")
+```
 """
 function PatternFreeString(alphabet::Vector{String}, pattern::String)
     @assert !isempty(alphabet)
     @assert !isempty(pattern)
+    for p in split(pattern, "")
+        p ∉ alphabet && throw(DomainError(p, "pattern is not made of characters from alphabet"))
+    end
     return PatternFreeString{String}(alphabet, pattern)
 end
 
@@ -45,7 +57,15 @@ end
         rng=-1
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `pfs.alphabet` with no occurence of the pattern `pfs.pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite)
+Generate a string uniformly at random among all strings made of characters from `pfs.alphabet` with no occurence of the pattern `pfs.pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite).
+
+```jldoctest; output = true
+using PartialRejectionSampling
+pfs = PRS.PatternFreeString(["A", "C", "G", "T"], "ATGTA")
+PRS.generate_sample_prs(pfs, 20; rng=1)
+# output
+"TCCAAATCTCCCCTGTCTAT"
+```
 """
 function generate_sample_prs(
         pfs::PatternFreeString{T},
@@ -120,7 +140,7 @@ end
         string::T
     )::Vector{UnitRange} where {T<:AbstractString}
 
-Identify where `pattern` occur in `sting` and return the corresponding ranges of indices.
+Identify where `pattern` occur in `string` and return the corresponding ranges of indices.
 """
 function find_bad_ranges(
     pattern::T,
@@ -157,9 +177,7 @@ end
     )::Vector{U} where {T<:String, U<:Int}
 
 Identify the set of events to be resampled as constructed by Algorithm 5 in [GuJeLi19](@cite) as part of the Partial Rejection Sampling (PRS) method.
-Return the indices of the variables (here characters) involved in the corresponding events.
-
-This function is used as a subroutine of the grid PRS methodology of [MoKr20](@cite), see [`PRS.generate_sample_grid_prs`](@ref)
+Return the indices of the variables involved in the corresponding events.
 
 **See also**
 

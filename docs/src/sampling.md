@@ -3,14 +3,16 @@
 Below is the list of point processes which can be sampled exactly using `PartialRejectionSampling.jl`
 
 * [Spatial point processes](@ref)
-  + [`PRS.HardCorePointProcess`](@ref)
-  + [`PRS.HomogeneousPoissonPointProcess`](@ref)
-  + [`PRS.StraussPointProcess`](@ref)
+  * [`PRS.HardCorePointProcess`](@ref)
+  * [`PRS.HomogeneousPoissonPointProcess`](@ref)
+  * [`PRS.StraussPointProcess`](@ref)
 * [Graph point processes](@ref)
-  + [`PRS.HardCoreGraph`](@ref)
-  + [`PRS.Ising`](@ref)
-  + [`PRS.RootedSpanningForest`](@ref)
-  + [`PRS.SinkFreeGraph`](@ref)
+  * [`PRS.HardCoreGraph`](@ref)
+  * [`PRS.Ising`](@ref)
+  * [`PRS.RootedSpanningForest`](@ref)
+  * [`PRS.SinkFreeGraph`](@ref)
+* Miscellaneous
+  * [`PRS.PatternFreeString`](@ref)
 
 ## Default exact sampler
 
@@ -20,10 +22,15 @@ PRS.generate_sample
 
 ## Partial Rejection Sampling (PRS)
 
-[GuJeLi19](@cite) developed the PRS methodology to generate exact samples from product distributions ``\prod_{n=1}^{N} \mu_n`` subject to some constraints.
+[GuJeLi19](@cite) developed the PRS methodology to generate exact samples from product distributions of the form ``\otimes_{n=1}^{N} \mu_n`` subject to some constraints.
 It requires access to an exact sampler for each ``\mu_n`` and an oracle to check the violation of the constraints.
 
-In this `PartialRejectionSampling.jl` package,
+Given an initial sample from ``\otimes_{n=1}^{N} \mu_n``:
+
+* [Vanilla rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling) resample all variables if any constraint is violated; until all constraints are satisfied,
+* Partial rejection sampling instead constructs a subset of variables to be resampled, starting from variables involved in violated constraints, and preserves the state of the variables outside of this resampling set; until all constraints are satisfied.
+
+In both cases, the output sample is guaranteed to have the right distribution, i.e., the product distribution subject to the prescribed constraints.
 
 ```@docs
 PRS.generate_sample_prs
@@ -42,10 +49,10 @@ To draw the correspondence with framework of PRS developed by [GuJeLi19](@cite),
 **See also** closely related variants of grid PRS for
 
 * Spatial point processes
-  + [Hub20](@cite)
+  * [Hub20](@cite)
 * Graphical models
-  + [Ising model](@ref)
-  + [FeViYi19](@cite), [FeGuYi19](@cite)
+  * [Ising model](@ref)
+  * [FeViYi19](@cite), [FeGuYi19](@cite)
 
 ```@autodocs
 Modules = [PartialRejectionSampling]
@@ -53,7 +60,6 @@ Pages   = ["grid_prs.jl"]
 Private = true
 Order = [:module, :constant, :type, :function, :macro]
 ```
-
 
 ## Uniform sampling in spatial windows
 
@@ -67,8 +73,8 @@ Implementation of dominated Coupling From The Past (dCFTP) developed by [KeMo99]
 
 **See also**
 
-- [Hub16](@cite)
-- [Kendall's notes on perfect simulation](https://warwick.ac.uk/fac/sci/statistics/staff/  academic-research/kendall/personal/ppt/428.pdf)
+* [Hub16](@cite)
+* [Kendall's notes on perfect simulation](<https://warwick.ac.uk/fac/sci/statistics/staff/>  academic-research/kendall/personal/ppt/428.pdf)
 
 ```@autodocs
 Modules = [PartialRejectionSampling]

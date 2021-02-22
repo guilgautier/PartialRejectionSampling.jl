@@ -13,6 +13,12 @@ The [Ising model](https://en.wikipedia.org/wiki/Ising_model) characterizes a poi
 ```
 
 where ``(h_i)_{V}`` are called magnetization paremeters and ``J`` the interaction coefficient (``J \gtreqless 0`` characterizes ferro/antiferro magnetic interactions).
+
+# Example
+
+A realization from a ``5\times 5`` grid graph, with ``h = 0.2, J = 0.1``.
+
+![assets/ising.png](assets/ising.png)
 """
 struct Ising{T<:Int} <: AbstractGraphPointProcess{T}
     graph::LG.SimpleGraph{T}
