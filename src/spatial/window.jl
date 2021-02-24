@@ -5,8 +5,8 @@ Abstract type representing a [hyperrectangle](https://en.wikipedia.org/wiki/Hype
 
 **See also**
 
-- [`PRS.RectangleWindow`](@ref)
-- [`PRS.SquareWindow`](@ref)
+- [`PRS.RectangleWindow`](@ref),
+- [`PRS.SquareWindow`](@ref).
 """
 abstract type AbstractRectangleWindow{T<:Float64} <: AbstractSpatialWindow{T} end
 
@@ -24,10 +24,20 @@ struct RectangleWindow{T<:Float64} <: AbstractRectangleWindow{T}
     w::Vector{T}
 end
 
+function Base.show(io::IO, win::RectangleWindow)
+    win_format = ""
+    if allequal(win.c) && allequal(win.w)
+        win_format = "[$(win.c[1]), $(win.w[1])]^$(dimension(win))"
+    else
+        win_format = join(["[$(c), $(c + w)]" for (c, w) in zip(win.c, win.w)], "x")
+    end
+    print(io, "RectangleWindow $(win_format)")
+end
+
 """
     RectangleWindow(c::AbstractVector, w::Vector)
 
-Construct a [`PRS.RectangleWindow`](@ref)
+Construct a [`PRS.RectangleWindow`](@ref).
 """
 function RectangleWindow(c::AbstractVector, w::Vector)
     @assert length(c) == length(w)
@@ -39,8 +49,8 @@ end
     SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
 
 Structure representing a [hypercube](https://fr.wikipedia.org/wiki/Hypercube) ``\prod_i [c_i, c_i + w]``, with fields
-- `c` lower left corner of the hypercube
-- `w` length of the hypercube
+- `c` lower left corner of the hypercube,
+- `w` length of the hypercube.
 """
 struct SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
     # Corner
@@ -49,12 +59,22 @@ struct SquareWindow{T<:Float64} <: AbstractRectangleWindow{T}
     w::T
 end
 
-"""
-    SquareWindow(c::AbstractVector, w::Real=1.0)
+function Base.show(io::IO, win::SquareWindow)
+    win_format = ""
+    if allequal(win.c)
+        win_format = "[$(win.c[1]), $(win.w)]^$(dimension(win))"
+    else
+        win_format = join(["[$(c), $(c + win.w)]" for c in win.c], "x")
+    end
+    print(io, "SquareWindow $(win_format)")
+end
 
-Construct a [`PRS.SquareWindow`](@ref)
 """
-function SquareWindow(c::AbstractVector, w::Real=1.0)
+    SquareWindow(c::AbstractVector=zeros(2), w::Real=1)
+
+Construct a [`PRS.SquareWindow`](@ref).
+"""
+function SquareWindow(c::AbstractVector=zeros(2), w::Real=1)
     @assert w > 0
     return SquareWindow{Float64}(c, w)
 end
@@ -62,7 +82,7 @@ end
 """
     rectangle_square_window(c, w)
 
-Construct a [`PRS.RectangleWindow`](@ref) or a [`PRS.SquareWindow`](@ref) depending on whether all coordinates of `w` are the same
+Construct a [`PRS.RectangleWindow`](@ref) or a [`PRS.SquareWindow`](@ref) depending .on whether all coordinates of `w` are the same.
 """
 function rectangle_square_window(c, w)
     return allequal(w) ? SquareWindow(c, w[1]) : RectangleWindow(c, w)
@@ -72,8 +92,8 @@ end
     BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
 
 Structure representing a closed [ball](https://en.wikipedia.org/wiki/Ball_(mathematics)) ``B(c, r)``, with fields
-- `c` center of the ball
-- `r` radius of the ball
+- `c` center of the ball,
+- `r` radius of the ball.
 """
 struct BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
     # Center
@@ -83,11 +103,11 @@ struct BallWindow{T<:Float64} <: AbstractSpatialWindow{T}
 end
 
 """
-    BallWindow(c::AbstractVector, r::Real)
+    BallWindow(c::AbstractVector=zeros(2), r::Real)
 
-Construct a [`PRS.BallWindow`](@ref)
+Construct a [`PRS.BallWindow`](@ref).
 """
-function BallWindow(c::AbstractVector, r::Real=1.0)
+function BallWindow(c::AbstractVector=zeros(2), r::Real=1)
     @assert r > 0
     return BallWindow{Float64}(c, r)
 end
@@ -95,7 +115,7 @@ end
 """
     dimension(win::AbstractSpatialWindow) = length(win.c)
 
-Return the dimension of window `win`
+Return the dimension of window `win`.
 """
 dimension(win::AbstractSpatialWindow) = length(win.c)
 
@@ -116,7 +136,7 @@ volume(win::SquareWindow) = win.w^dimension(win)
 Return the [volume of the ball](https://en.wikipedia.org/wiki/Volume_of_an_n-ball) ``B(c, r)\subseteq R^d`` as
 
 ```math
-    \frac{π^{d/2} r^d}{\Gamma(d/2 + 1)}
+    \frac{π^{d/2} r^d}{\Gamma(d/2 + 1)} \cdot
 ```
 """
 function volume(win::BallWindow)
@@ -130,7 +150,7 @@ end
         win::AbstractRectangleWindow
     )
 
-Check if ``x \in \prod_{i} [c_i, c_i + w_i]``
+Check if ``x \in \prod_{i} [c_i, c_i + w_i]``.
 """
 function Base.in(
     x::AbstractVector,
@@ -145,7 +165,7 @@ end
         win::AbstractRectangleWindow
     )
 
-Check if ``x \in B(c, r)``, i.e., ``\left\| x - c \right\| \leq r``
+Check if ``x \in B(c, r)``, i.e., ``\left\| x - c \right\| \leq r``.
 """
 function Base.in(
     x::AbstractVector,
@@ -160,7 +180,7 @@ end
         rng=-1
     )::Vector{T} where {T}
 
-Sample uniformly at random in window `win`
+Sample uniformly at random in window `win`.
 """
 function Base.rand(
     win::AbstractRectangleWindow{T};
@@ -177,7 +197,7 @@ end
         rng=-1
     )::Matrix{T} where {T}
 
-Sample `n` points uniformly at random in window `win`
+Sample `n` points uniformly at random in window `win`.
 """
 function Base.rand(
     win::AbstractRectangleWindow{T},
@@ -196,7 +216,7 @@ end
         rng=-1
     )::Vector{T} where {T}
 
-Sample uniformly at random in window `win`
+Sample uniformly at random in window `win`.
 """
 function Base.rand(
     win::BallWindow{T};
@@ -217,7 +237,7 @@ end
         rng=-1
     )::Matrix{T} where {T}
 
-Sample `n` points uniformly at random in window `win`
+Sample `n` points uniformly at random in window `win`.
 """
 function Base.rand(
     win::BallWindow{T},

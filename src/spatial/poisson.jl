@@ -15,26 +15,41 @@ struct HomogeneousPoissonPointProcess{T<:Vector{Float64}} <: AbstractSpatialPoin
     window::AbstractSpatialWindow{Float64}
 end
 
+function Base.show(io::IO, pp::HomogeneousPoissonPointProcess{T}) where {T}
+    print(io, "HomogeneousPoissonPointProcess{$T}\n- β = $(pp.β)\n- window = $(pp.window)")
+end
+
 @doc raw"""
-    HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
+    HomogeneousPoissonPointProcess(
+        β::Real,
+        window::Union{Nothin,AbstractSpatialWindow}=nothing
+    )
 
 Construct a [`PRS.HomogeneousPoissonPointProcess`](@ref) with intensity `β` restricted to `window`.
+
+Default window (`window=nothing`) is [`PRS.SquareWindow`](@ref)`()`.
 
 ```jldoctest; output = true
 using PartialRejectionSampling
 
 β = 40
 win = PRS.SquareWindow(zeros(2), 1)
-hc = PRS.HomogeneousPoissonPointProcess(β, win)
+PRS.HomogeneousPoissonPointProcess(β, win)
 
 # output
 
-HomogeneousPoissonPointProcess{Array{Float64,1}}(40.0, SquareWindow{Float64}([0.0, 0.0], 1.0))
+HomogeneousPoissonPointProcess{Array{Float64,1}}
+- β = 40.0
+- window = SquareWindow [0.0, 1.0]^2
 ```
 """
-function HomogeneousPoissonPointProcess(β::Real, window::AbstractSpatialWindow)
+function HomogeneousPoissonPointProcess(
+    β::Real,
+    window::Union{Nothing,AbstractSpatialWindow}=nothing
+)
     @assert β > 0
-    return HomogeneousPoissonPointProcess{Vector{Float64}}(β, window)
+    win = window === nothing ? SquareWindow() : window
+    return HomogeneousPoissonPointProcess{Vector{Float64}}(β, win)
 end
 
 """

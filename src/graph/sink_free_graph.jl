@@ -14,10 +14,14 @@ struct SinkFreeGraph{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
     graph::LG.SimpleGraph{Int64}
 end
 
+function Base.show(io::IO, pp::SinkFreeGraph{T}) where {T}
+    print(io, "SinkFreeGraph{$T}\n- graph = $(pp.graph)")
+end
+
 """
     SinkFreeGraph(graph::LG.SimpleGraph{T}) where {T<:Int}
 
-Construct a [`SinkFreeGraph`](@ref).
+Construct a [`PRS.SinkFreeGraph`](@ref).
 
 ```jldoctest; output = true
 using PartialRejectionSampling
@@ -27,25 +31,26 @@ sfg = PRS.SinkFreeGraph(LG.grid([5, 5]))
 
 # output
 
-SinkFreeGraph{SimpleDiGraph{Int64}}({25, 40} undirected simple Int64 graph)
+SinkFreeGraph{LightGraphs.SimpleGraphs.SimpleDiGraph{Int64}}
+- graph = {25, 40} undirected simple Int64 graph
 ```
 """
 SinkFreeGraph(graph::LG.SimpleGraph{Int64}) = SinkFreeGraph{LG.SimpleDiGraph{Int64}}(graph)
 
 """
     generate_sample(
-        pp::SinkFreeGraph{T};
+        pp::SinkFreeGraph;
         rng=-1
-    )::Vector{T} where {T}
+    )
 
 Generate an exact sample from the [`PRS.SinkFreeGraph`](@ref).
 
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
 function generate_sample(
-    pp::SinkFreeGraph{T};
+    pp::SinkFreeGraph;
     rng=-1
-)::Vector{T} where {T}
+)
     return generate_sample_prs(pp; rng=rng)
 end
 
@@ -78,8 +83,8 @@ function generate_sample_prs(
         isempty(sinks) && break
         # Resample i.e. flip edges forming a sink uniformly at random (Bernoulli(0.5))
         for v in sinks
-            inneigh_v = copy(LG.inneighbors(g, v))
-            for w in inneigh_v
+            in_neighbors_v = copy(LG.inneighbors(g, v))
+            for w in in_neighbors_v
                 if rand(rng) < 0.5
                     LG.rem_edge!(g, w, v)
                     LG.add_edge!(g, v, w)

@@ -10,16 +10,17 @@ Spatial point process with density (w.r.t. the homogenous Poisson point process 
         \gamma^{ 1_{ \left\| x - y \right\|_2 \leq r } }
     =
     \beta^{|X|}
-    \gamma^{|\{\{x, y\} \subseteq X ~;~ \left\| x - y \right\|_2 \leq r\}|}
+    \gamma^{|\{\{x, y\} \subseteq X ~;~ \left\| x - y \right\|_2 \leq r\}|},
 ```
 
-with intensity ``\beta > 0``, interaction coefficient ``0\leq \gamma\leq 1`` and interaction range ``r > 0``
+with intensity ``\beta > 0``, interaction coefficient ``0\leq \gamma\leq 1`` and interaction range ``r > 0``.
 
-- ``\gamma = 0`` corresponds to the [`PRS.HardCorePointProcess`](@ref)
-- ``\gamma = 1`` corresponds to the [`PRS.HomogeneousPoissonPointProcess`](@ref)
+- ``\gamma = 0`` corresponds to the [`PRS.HardCorePointProcess`](@ref),
+- ``\gamma = 1`` corresponds to the [`PRS.HomogeneousPoissonPointProcess`](@ref).
 
 **See also**
-- Section 6.2.2 of [MoWa04](@cite)
+
+- Section 6.2.2 of [MoWa04](@cite).
 """
 struct StraussPointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
     "Intensity"
@@ -31,35 +32,55 @@ struct StraussPointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
     window::AbstractSpatialWindow{Float64}
 end
 
+function Base.show(io::IO, pp::StraussPointProcess{T}) where {T}
+    print(io, "StraussPointProcess{$T}\n- β = $(pp.β)\n- γ = $(pp.γ)\n- r = $(pp.r)\n- window = $(pp.window)")
+end
+
 @doc raw"""
-    StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatialWindow)
+    StraussPointProcess(
+        β::Real,
+        γ::Real,
+        r::Real,
+        window::Union{Nothing,AbstractSpatialWindow}=nothing
+    )
 
 Construct a [`PRS.StraussPointProcess`](@ref) with intensity `β`, interaction coefficient `γ`, and interaction range `r`, restricted to `window`.
+
+Default window (`window=nothing`) is [`PRS.SquareWindow`](@ref)`()`.
 
 ```jldoctest; output = true
 using PartialRejectionSampling
 
 β, γ, r = 2.0, 0.2, 0.7
 win = PRS.SquareWindow([0.0, 0.0], 10.0)
-
-strauss = PRS.StraussPointProcess(β, γ, r, win)
+PRS.StraussPointProcess(β, γ, r, win)
 
 # output
 
-StraussPointProcess{Array{Float64,1}}(2.0, 0.2, 0.7, SquareWindow{Float64}([0.0, 0.0], 10.0))
+StraussPointProcess{Array{Float64,1}}
+- β = 2.0
+- γ = 0.2
+- r = 0.7
+- window = SquareWindow [0.0, 10.0]^2
+```
 
 # Example
 
 A illustration of the procedure for ``\beta=78, \gamma=0.1`` and ``r=0.07`` on ``[0, 1]^2`` where points are marked with a circle of radius ``r/2``.
 
 ![assets/strauss_spatial_prs.gif](assets/strauss_spatial_prs.gif)
-```
 """
-function StraussPointProcess(β::Real, γ::Real, r::Real, window::AbstractSpatialWindow)
+function StraussPointProcess(
+    β::Real,
+    γ::Real,
+    r::Real,
+    window::Union{Nothing,AbstractSpatialWindow}=nothing
+)
     @assert β > 0
     @assert 0 <= γ <= 1
     @assert r > 0
-    return StraussPointProcess{Vector{Float64}}(β, γ, r, window)
+    win = window === nothing ? SquareWindow() : window
+    return StraussPointProcess{Vector{Float64}}(β, γ, r, win)
 end
 
 """
@@ -109,14 +130,14 @@ end
 @doc raw"""
     isrepulsive(pp::StraussPointProcess) = true
 
-We consider only repulsive [`StraussPointProcess`](@ref) since ``0 \leq \gamma \leq 1``
+We consider only repulsive [`PRS.StraussPointProcess`](@ref) since ``0 \leq \gamma \leq 1``.
 """
 isrepulsive(pp::StraussPointProcess) = true
 
 @doc raw"""
     isattractive(pp::StraussPointProcess) = false
 
-We consider only repulsive [`StraussPointProcess`](@ref) since ``0 \leq \gamma \leq 1``
+We consider only repulsive [`PRS.StraussPointProcess`](@ref) since ``0 \leq \gamma \leq 1``.
 """
 isattractive(pp::StraussPointProcess) = false
 

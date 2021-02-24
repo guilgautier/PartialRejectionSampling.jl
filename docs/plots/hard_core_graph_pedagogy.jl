@@ -2,8 +2,8 @@
 includet("docs/plots/pedagogy_graph.jl")
 using Random
 
-width, height = 5, 5
-g = LG.grid([width, height])
+dims = [5, 5]
+g = LG.grid(dims)
 β = 0.5
 
 pp = PRS.HardCoreGraph(g, β)

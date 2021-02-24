@@ -1,5 +1,5 @@
 """
-Implementation of Grid Partial Rejection Sampling of [MoKr20](@cite)
+Implementation of Grid Partial Rejection Sampling of [MoKr20](@cite).
 """
 
 """
@@ -81,7 +81,7 @@ end
         rng=-1
     ) where {T<:AbstractCellGridPRS}
 
-Apply [`generate_sample!`](@ref) to each cell of `cells` indexed by `indices`.
+Apply [`PRS.generate_sample!`](@ref) to each cell of `cells` indexed by `indices`.
 """
 function generate_sample!(
     cells::Vector{T},
@@ -148,7 +148,7 @@ An event ``\{i,j\}`` is said to be \"bad\"
     \left\{U_{ij} > \exp \left[ -\sum_{x \in C_i} \sum_{y \in C_j} V(x,y) \right] \right\}
 ```
 
-where ``U_{ij}`` is the weight of the edge ``\{i,j\}`` in the interaction graph ``g`` created by [`weighted_interaction_graph`](@ref) and ``V`` the Gibbs potential discribing the pairwise Gibbs interaction of `pp`
+where ``U_{ij}`` is the weight of the edge ``\{i,j\}`` in the interaction graph ``g`` created by [`PRS.weighted_interaction_graph`](@ref) and ``V`` the Gibbs potential discribing the pairwise Gibbs interaction of `pp`
 
 **Note** when a bad event occurs, the corresponding ``U_{ij}`` is resampled hence the "!"
 
@@ -288,7 +288,7 @@ end
         cell_j::SpatialCellGridPRS
     ) = false
 
-Assume `cell_i` and `cell_j` are neighboring cells in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `spp` and already identified in the set of variables to be resampled in [`PRS.generate_sample_grid_prs`](@ref)
+Assume `cell_i` and `cell_j` are neighboring cells in the weighted interaction graph constructed by [`PRS.weighted_interaction_graph`](@ref) from `spp` and already identified in the set of variables to be resampled in [`PRS.generate_sample_grid_prs`](@ref)
 Since the configuration of points in the corresponding cells and the uniform random variable associated to the event `\{i,j\}` are considered fixed, there is no degree of freedom to make the interaction between `cell_i` and `cell_j` possible.
 
 This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
@@ -308,7 +308,7 @@ end
         cell_j::SpatialCellGridPRS
     )::Bool
 
-Assume `cell_i` and `cell_j` are neighboring cells in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `spp`.
+Assume `cell_i` and `cell_j` are neighboring cells in the weighted interaction graph constructed by [`PRS.weighted_interaction_graph`](@ref) from `spp`.
 Given the configuration of points in `cell_i`, check whether a realization of `spp` in `cell_j` can induce a bad event.
 
 This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).

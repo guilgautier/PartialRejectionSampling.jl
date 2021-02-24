@@ -31,27 +31,6 @@ function generate_sample_gibbs_perfect(
     return state
 end
 
-@doc raw"""
-    generate_sample!(
-        state::AbstractVector{T},
-        indices,
-        ising::Ising{T};
-        rng=-1
-    ) where {T<:Int}
-
-Generate an exact sample from the marginal distribution of each states of the [`Ising`](@ref) model `ising` at the prescribed `indices`.
-"""
-function generate_sample!(
-    state::AbstractVector{T},
-    indices,
-    ising::Ising{T};
-    rng=-1
-) where {T<:Int}
-    for i in indices
-        state[i] = generate_sample(ising, i; rng=rng)
-    end
-end
-
 """
     bayes_filter(
         ising::Ising{T},
@@ -76,35 +55,6 @@ function bayes_filter(
 
     rng = getRNG(rng)
     Xi_J = state[i] * ising.J
-    acc_ratio = Xi_J * (-sign(Xi_J) * length(∂i_R̄) - sum(state[j] for j in ∂i_R̄))
-    return log(rand(rng)) < acc_ratio
-end
-
-@doc raw"""
-    generate_sample_conditional!(
-        state::AbstractVector{T},
-        i::T,
-        ising::Ising{T};
-        rng=-1
-    ) where {T<:Int}
-
-Generate an exact sample from the conditional distribution of the state ``x_i`` given its neighboring states in `ising.graph`.
-More specifically,
-```math
-    x_i \mid x_{N(i)}
-        \sim
-        \operatorname{Bernoulli}_{-1, 1}
-            (\sigma(h_i + J \sum_{j \in N(i)} x_j).
-```
-"""
-function generate_sample_conditional!(
-    state::AbstractVector{T},
-    i::T,
-    ising::Ising{T};
-    rng=-1
-) where {T<:Int}
-    rng = getRNG(rng)
-    hᵢ = ising.h isa Number ? ising.h : ising.h[i]
-    proba = sigmoid(hᵢ + ising.J * sum(state[j] for j in LG.neighbors(ising.graph, i)))
-    state[i] = rand(rng) < proba ? 1 : -1
+    log_acc_ratio = Xi_J * (-sign(Xi_J) * length(∂i_R̄) - sum(state[j] for j in ∂i_R̄))
+    return log(rand(rng)) < log_acc_ratio
 end

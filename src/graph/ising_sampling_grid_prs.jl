@@ -7,6 +7,8 @@
     )::SWG.SimpleWeightedGraph
 
 Return a weighted version of `ising.graph` where each edge is attached an independent uniform random variable.
+
+This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function weighted_interaction_graph(
     ising::Ising;
@@ -20,9 +22,9 @@ end
         ising::Ising{T}
     )::Vector{GraphCellGridPRS{T}} where {T}
 
-Each node of `ising.graph` is considered as `cell` of type [`GraphCellGridPRS`](@ref) such that `cell.window` is a [`GraphNode`](@ref) and `cell.value` initialized to `zero(T)`
+Each node of `ising.graph` is considered as a `cell` of type [`PRS.GraphCellGridPRS`](@ref) such that `cell.window` is a [`PRS.GraphNode`](@ref) and `cell.value` initialized to `zero(T)`.
 
-This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref)..
+This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function initialize_cells(
     ising::Ising{T}
@@ -31,6 +33,12 @@ function initialize_cells(
 end
 
 """
+    generate_sample(
+        pp::Ising;
+        win::GraphNode,
+        rng=-1
+    )
+
 Generate an exact sample from the marginal distribution of `pp` at state indexed by `win.idx`.
 """
 function generate_sample(
@@ -48,11 +56,10 @@ end
         xⱼ::GraphCellGridPRS{T}
     )::Real where {T}
 
-Compute the Gibbs interaction of [`Ising`](@ref)
+Compute the Gibbs interaction of [`PRS.Ising`](@ref)
 
 ```math
-    \exp(J x_i x_j - |J|))
-
+    \exp(J x_i x_j - |J|)).
 ```
 
 **Note** the Gibbs interaction is normalized in be in [0, 1] to fit the framework of [MoKr20](@cite) and [FeViYi19](@cite).
@@ -72,7 +79,7 @@ end
         xⱼ::GraphCellGridPRS{T}
     ) = true
 
-Assume `xᵢ` and `xⱼ` are neighboring sites in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `ising.graph` and already identified in the set of variables to be resampled [`PRS.generate_sample_grid_prs`](@ref).
+Assume `xᵢ` and `xⱼ` are neighboring sites in the weighted interaction graph constructed by [`PRS.weighted_interaction_graph`](@ref) from `ising.graph` and already identified in the set of variables to be resampled [`PRS.generate_sample_grid_prs`](@ref).
 Given the states of `xᵢ` and `xⱼ`, check whether a new assigment of ``U_{ij}`` (the weight of edge ``\{i,j\}``) can induce the bad event
 
 ```math
@@ -96,7 +103,7 @@ end
         xⱼ::GraphCellGridPRS{T}
     ) = true
 
-Assume `xᵢ` and `xⱼ` are neighboring sites in the weighted interaction graph constructed by [`weighted_interaction_graph`](@ref) from `ising.graph`.
+Assume `xᵢ` and `xⱼ` are neighboring sites in the weighted interaction graph constructed by [`PRS.weighted_interaction_graph`](@ref) from `ising.graph`.
 Given the state of `xᵢ`, one can always find a new assigment of `xⱼ` and/or ``U_{ij}`` (the weight of edge ``\{i,j\}``) can induce the bad event
 
 ```math

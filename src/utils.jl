@@ -134,6 +134,29 @@ function random_edge_orientation(
 end
 
 """
+    random_neighbor_assignment(
+        graph::LG.SimpleGraph{T},
+        roots=Set{T}();
+        rng=-1
+    )::LG.SimpleDiGraph{T} where {T}
+
+Return a oriented subgraph of `graph` where each vertex except the `roots` is connected to a unique neighbor, i.e., each vertex has outdegree equal to one.
+"""
+function random_neighbor_assignment(
+    graph::LG.SimpleGraph{T},
+    roots=Set{T}();
+    rng=-1
+)::LG.SimpleDiGraph{T} where {T}
+    rng = getRNG(rng)
+    g = LG.SimpleDiGraph(LG.nv(graph))
+    for v in setdiff(LG.vertices(g), roots)
+        w = rand(rng, LG.neighbors(graph, v))
+        LG.add_edge!(g, v, w)
+    end
+    return g
+end
+
+"""
     pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
 
 Pairwise euclidean distance matrix between columns of `X` and `Y`.
@@ -145,7 +168,7 @@ pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; d
     pairwise_distances(X; diag_coeff=Inf) = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
 
 Pairwise euclidean distance matrix between columns of `X`
-Equivalent to [`pairwise_distances`](@ref)`(X, X)` and setting the diagonal elements to `diag_coeff`.
+Equivalent to [`PRS.pairwise_distances`](@ref)`(X, X)` and setting the diagonal elements to `diag_coeff`.
 """
 function pairwise_distances(X; diag_coeff=Inf)
     dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)

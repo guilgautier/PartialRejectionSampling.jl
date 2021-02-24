@@ -27,13 +27,17 @@ struct RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointPro
     roots::Set{Int64}
 end
 
+function Base.show(io::IO, pp::RootedSpanningForest{T}) where {T}
+    print(io, "RootedSpanningForest{$T}\n- graph = $(pp.graph)\n- roots = $(pp.roots)")
+end
+
 """
     RootedSpanningForest(
         graph::LG.SimpleGraph{T},
         roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
     ) where {T<:Int}
 
-Construct a [`RootedSpanningForest`](@ref) model on `graph`, rooted at `roots`.
+Construct a [`PRS.RootedSpanningForest`](@ref) model on `graph`, rooted at `roots`.
 If `roots === nothing`, a random vertex is selected uniformly at random among `LG.vertices(g)` and considered as `roots`.
 
 ```jldoctest; output = true
@@ -46,16 +50,21 @@ rsf = PRS.RootedSpanningForest(g, roots)
 
 # output
 
-RootedSpanningForest{SimpleDiGraph{Int64}}({25, 40} undirected simple Int64 graph, Set([2, 3, 1]))
+RootedSpanningForest{LightGraphs.SimpleGraphs.SimpleDiGraph{Int64}}
+- graph = {25, 40} undirected simple Int64 graph
+- roots = Set([2, 3, 1])
 ```
 """
 function RootedSpanningForest(
     graph::LG.SimpleGraph{T},
     roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
 ) where {T<:Int}
-    roots_ = Set(roots === nothing ? rand(1:LG.nv(graph)) : roots)
-    !issubset(roots_, LG.vertices(graph)) && throw(DomainError(root_, "some roots not contained in vertices(graph)"))
-    return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
+    roots_ = Set(roots === nothing ? rand(LG.vertices(graph)) : roots)
+    if issubset(roots_, LG.vertices(graph))
+        return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
+    else
+        throw(DomainError(roots, "some roots not contained in vertices(graph)"))
+    end
 end
 
 """
@@ -110,31 +119,6 @@ function _generate_sample_rooted_spanning_forest_prs(
             w = LG.neighbors(g, v)[1]
             LG.rem_edge!(g, v, w)
             # Resample the successor w of v and add edge (v, w)
-            w = rand(rng, LG.neighbors(graph, v))
-            LG.add_edge!(g, v, w)
-        end
-    end
-    return g
-end
-
-"""
-    random_neighbor_assignment(
-        graph::LG.SimpleGraph{T},
-        roots;
-        rng=-1
-    )::LG.SimpleDiGraph{T} where {T}
-
-Return a oriented subgraph of `graph` where each vertex except the `roots` is connected to a unique neighbor, i.e., each vertex has outdegree equal to one.
-"""
-function random_neighbor_assignment(
-    graph::LG.SimpleGraph{T},
-    roots;
-    rng=-1
-)::LG.SimpleDiGraph{T} where {T}
-    rng = getRNG(rng)
-    g = LG.SimpleDiGraph(LG.nv(graph))
-    for v in LG.vertices(graph)
-        if v ∉ roots
             w = rand(rng, LG.neighbors(graph, v))
             LG.add_edge!(g, v, w)
         end

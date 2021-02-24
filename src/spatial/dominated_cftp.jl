@@ -21,7 +21,7 @@ function papangelou_conditional_intensity(pp::AbstractSpatialPointProcess, x, X)
 """
     upper_bound_papangelou_conditional_intensity(pp::AbstractSpatialPointProcess)
 
-Compute an upper bound on the [`papangelou_conditional_intensity`](@ref) of `pp`
+Compute an upper bound on the [`PRS.papangelou_conditional_intensity`](@ref) of `pp`
 
 **See also**
 
@@ -109,7 +109,7 @@ The final state of the dominating process is updated to `D`.
 
 **See also**
 
-- SBDevolve() [KeMo99](@cite)
+- `SBDevolve()` [KeMo99](@cite)
 """
 function backward_extend!(
     D::Set{T},          # Dominating process
@@ -152,7 +152,7 @@ Check if coalescence occured between the lower and upper bounding processes and 
 
 **See also**
 
-- SBDadd() [KeMo99](@cite)
+- `SBDadd()` [KeMo99](@cite)
 """
 function forward_coupling(
         D::Set{T},           # Dominating process

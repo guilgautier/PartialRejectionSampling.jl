@@ -18,11 +18,11 @@ where ``\beta > 0`` is called the background intensity and ``r > 0`` the interac
 
 **See also**
 
-- [`PRS.HardCoreGraph`](@ref), the graph counterpart of [`PRS.HardCorePointProcess`](@ref)
+- [`PRS.HardCoreGraph`](@ref), the graph counterpart of [`PRS.HardCorePointProcess`](@ref).
 
 # Example
 
-A realization for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2``
+A realization for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2``.
 
 ![assets/hard_core_spatial.png](assets/hard_core_spatial.png)
 """
@@ -34,27 +34,45 @@ struct HardCorePointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T
     window::AbstractSpatialWindow{Float64}
 end
 
+function Base.show(io::IO, pp::HardCorePointProcess{T}) where {T}
+    print(io, "HardCorePointProcess{$T}\n- β = $(pp.β)\n- r = $(pp.r)\n- window = $(pp.window)")
+end
+
 @doc raw"""
-    HardCorePointProcess(β::Real, r::Real, window::AbstractSpatialWindow)
+    HardCorePointProcess(
+        β::Real,
+        r::Real,
+        window::Union{Nothing,AbstractSpatialWindow}=nothing
+    )
 
 Construct a [`PRS.HardCorePointProcess`](@ref) with intensity `β` and interaction range `r`, restricted to `window`.
+
+Default window (`window=nothing`) is [`PRS.SquareWindow`](@ref)`()`.
 
 ```jldoctest; output = true
 using PartialRejectionSampling
 
 β, r = 40, 0.05
 win = PRS.SquareWindow(zeros(2), 1)
-hc = PRS.HardCorePointProcess(β, r, win)
+PRS.HardCorePointProcess(β, r, win)
 
 # output
 
-HardCorePointProcess{Array{Float64,1}}(40.0, 0.05, SquareWindow{Float64}([0.0, 0.0], 1.0))
+HardCorePointProcess{Array{Float64,1}}
+- β = 40.0
+- r = 0.05
+- window = SquareWindow [0.0, 1.0]^2
 ```
 """
-function HardCorePointProcess(β::Real, r::Real, window::AbstractSpatialWindow)
+function HardCorePointProcess(
+    β::Real,
+    r::Real,
+    window::Union{Nothing,AbstractSpatialWindow}=nothing
+)
     @assert β > 0
     @assert r > 0
-    return HardCorePointProcess{Vector{Float64}}(β, r, window)
+    win = window === nothing ? SquareWindow() : window
+    return HardCorePointProcess{Vector{Float64}}(β, r, win)
 end
 
 """
@@ -88,7 +106,8 @@ Default window (`win=nothing`) is `window(pp)=pp.window`.
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 
 **See also**
-- [`PRS.generate_sample_dcftp`](@ref)
+
+- [`PRS.generate_sample_dcftp`](@ref),
 - [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample(

@@ -1,7 +1,7 @@
 @doc raw"""
     HardCoreGraph{T<:Integer} <: AbstractGraphPointProcess{T}
 
-Concrete type representing a point process on the vertices of a `graph` ``=(V, E)`` parametrized by `\beta ≥ 0` which characterizes the distribution on the [independent sets](https://en.wikipedia.org/wiki/Independent_set_(graph_theory)) of `graph`, where each vertex is present with marginal probability ``\frac{\beta}{1+\beta}``.
+Concrete type representing a point process on the vertices of a `graph` ``=(V, E)`` parametrized by ``\beta \geq 0`` which characterizes the distribution on the [independent sets](https://en.wikipedia.org/wiki/Independent_set_(graph_theory)) of `graph`, where each vertex is present with marginal probability ``\frac{\beta}{1+\beta}``.
 
 In other words, it can also be viewed as the product distribution ``\operatorname{Bernoulli}(\frac{\beta}{1+\beta})^{\otimes |V|}`` on the vertices of `graph` conditioned on forming an independent set,
 
@@ -15,9 +15,9 @@ In other words, it can also be viewed as the product distribution ``\operatornam
 
 **See also**
 
-- Section 7.2 of [GuJeLi19](@cite)
-- Example 4.1 of [MoKr20](@ref)
-- [`PRS.HardCorePointProcess`](@ref), the spatial counterpart of [`PRS.HardCoreGraph`](@ref)
+- Section 7.2 of [GuJeLi19](@cite),
+- Example 4.1 of [MoKr20](@ref),
+- [`PRS.HardCorePointProcess`](@ref), the spatial counterpart of [`PRS.HardCoreGraph`](@ref).
 
 # Example
 
@@ -31,25 +31,30 @@ struct HardCoreGraph{T<:Integer} <: AbstractGraphPointProcess{T}
     β::Float64
 end
 
+function Base.show(io::IO, pp::HardCoreGraph{T}) where {T}
+    print(io, "HardCoreGraph{$T}\n- graph = $(pp.graph)\n- β = $(pp.β)")
+end
+
 """
     HardCoreGraph(
         graph::LG.SimpleGraph{T},
         β::Real
     ) where {T<:Integer}
 
-Construct a [`HardCoreGraph`](@ref).
+Construct a [`PRS.HardCoreGraph`](@ref).
 
 ```jldoctest; output = true
 using PartialRejectionSampling
 using LightGraphs; const LG = LightGraphs
 
 g, β = LG.grid([5, 5]), 1
-
-hcg = PRS.HardCoreGraph(g, β)
+PRS.HardCoreGraph(g, β)
 
 # output
 
-HardCoreGraph{Int64}({25, 40} undirected simple Int64 graph, 1.0)
+HardCoreGraph{Int64}
+- graph = {25, 40} undirected simple Int64 graph
+- β = 1.0
 ```
 """
 function HardCoreGraph(
@@ -91,13 +96,13 @@ Sample from [`PRS.HardCoreGraph`](@ref) using Partial Rejection Sampling (PRS), 
 
 **See also**
 
-- Example 4.1 of [MoKr20](@ref)
+- Example 4.1 of [MoKr20](@ref).
 
 # Example
 
 An illustration of the procedure on a ``5\\times 5`` grid graph.
 
-![assets/hard_core_graph_prs.gif](assets/hard_core_graph_prs.gif)
+![assets/hard_core_graph.gif](assets/hard_core_graph.gif)
 """
 function generate_sample_prs(
     pp::HardCoreGraph{T};

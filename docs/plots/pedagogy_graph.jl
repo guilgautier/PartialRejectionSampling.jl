@@ -62,57 +62,52 @@ function plot(
 end
 
 function plot(
-    pp::Ising,
+    pp::PRS.Ising,
     state,
-    width::Int=0,
-    height::Int=0;
-    file=""
+    dims=zeros(2);
+    kwargs...
 )
     c_nodes = ifelse.(
             state .== 1,
             Colors.colorant"gray",
             Colors.colorant"white")
 
-    plot(pp.graph, [width, height], file; nodefillc=c_nodes)
+    plot(pp.graph, dims; nodefillc=c_nodes, kwargs...)
 end
 
 function plot(
-    pp::HardCoreGraph,
+    pp::PRS.HardCoreGraph,
     state,
-    width::Int=0,
-    height::Int=0;
-    file=""
+    dims=zeros(2);
+    kwargs...
 )
-    c_nodes = [Colors.colorant"turquoise" for _ in 1:LG.nv(pp.graph)]
-    c_nodes[state] .= Colors.colorant"red"
+    c_nodes = [Colors.colorant"white" for _ in 1:LG.nv(pp.graph)]
+    c_nodes[state] .= Colors.colorant"black"
 
-    plot(pp.graph, [width, height], file; nodefillc=c_nodes)
+    plot(pp.graph, dims; nodefillc=c_nodes, kwargs...)
 end
 
 function plot(
-    pp::SinkFreeGraph,
+    pp::PRS.SinkFreeGraph,
     sample,
-    width::Int=0,
-    height::Int=0;
-    file=""
+    dims=zeros(2);
+    kwargs...
 )
-    c_nodes = [LG.outdegree(sample, v) == 0 ? colorant"red" : colorant"turquoise"
-                 for v in LG.vertices(sample)]
+    c_nodes, c_edges = color_sinks(sample)
 
-    plot(pp.graph, [width, height], file; nodefillc=c_nodes)
+    plot(sample, dims; nodefillc=c_nodes, edgestrokec=c_edges, kwargs...)
 end
 
 function plot(
-    pp::RootedSpanningForest,
+    pp::PRS.RootedSpanningForest,
     sample,
-    width::Int=0,
-    height::Int=0;
-    file=""
+    dims=zeros(2);
+    kwargs...
 )
-    c_nodes, col_edges = color_cycles(sample)
+    c_nodes, c_edges = color_cycles(sample)
     c_nodes[collect(pp.roots)] .= Colors.colorant"orange"
 
-    plot(pp.graph, [width, height], file; nodefillc=c_nodes)
+    plot(sample, dims; nodefillc=c_nodes, edgestrokec=c_edges)
 end
 
 function color_cycles(
@@ -136,10 +131,10 @@ function color_cycles(
     c_nodes = fill(c_node, LG.nv(graph))
     c_nodes[nodes] .= c_node_cycle
 
-    col_edges = fill(c_edge, LG.ne(graph))
-    col_edges[edge_idx] .= c_edge_cycle
+    c_edges = fill(c_edge, LG.ne(graph))
+    c_edges[edge_idx] .= c_edge_cycle
 
-    return c_nodes, col_edges
+    return c_nodes, c_edges
 end
 
 function color_sinks(
@@ -163,8 +158,8 @@ function color_sinks(
     c_nodes = fill(c_node, LG.nv(graph))
     c_nodes[nodes] .= c_node_sink
 
-    col_edges = fill(c_edge, LG.ne(graph))
-    col_edges[edge_idx] .= c_edge_sink
+    c_edges = fill(c_edge, LG.ne(graph))
+    c_edges[edge_idx] .= c_edge_sink
 
-    return c_nodes, col_edges
+    return c_nodes, c_edges
 end

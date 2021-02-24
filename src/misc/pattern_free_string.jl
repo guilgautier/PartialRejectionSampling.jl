@@ -8,10 +8,14 @@ struct PatternFreeString{T<:String} <: AbstractPointProcess{T}
     pattern::T
 end
 
+function Base.show(io::IO, pp::PatternFreeString{T}) where {T}
+    print(io, "PatternFreeString{$T}\n- alphabet = $(pp.alphabet)\n- pattern = $(pp.pattern)")
+end
+
 """
     PatternFreeString(alphabet::Vector{String}, pattern::String)
 
-Construct a [`PatternFreeString`](@ref).
+Construct a [`PRS.PatternFreeString`](@ref).
 
 ```jldoctest; output = true
 using PartialRejectionSampling
@@ -19,7 +23,9 @@ PRS.PatternFreeString(["A", "C", "G", "T"], "ATGTA")
 
 # output
 
-PatternFreeString{String}(["A", "C", "G", "T"], "ATGTA")
+PatternFreeString{String}
+- alphabet = ["A", "C", "G", "T"]
+- pattern = ATGTA
 ```
 """
 function PatternFreeString(alphabet::Vector{String}, pattern::String)
@@ -181,7 +187,7 @@ Return the indices of the variables involved in the corresponding events.
 
 **See also**
 
-[`find_bad_ranges`](@ref)
+- [`PRS.find_bad_ranges`](@ref)
 """
 function find_characters_to_resample(
     string_vec::Vector{T},

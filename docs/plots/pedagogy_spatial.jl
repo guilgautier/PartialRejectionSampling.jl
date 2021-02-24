@@ -6,7 +6,6 @@ using Plots
 using LazySets
 const LS = LazySets
 
-
 # Pedagogy
 function pedagogy_generate_sample_prs(
         pp::PRS.HardCorePointProcess{T};
@@ -70,7 +69,7 @@ function pedagogy_plot!(
         show_center=true,
         radius=0,
         color="white",
-        window=SquareWindow(zeros(2), 1.0)
+        window=SquareWindow(zeros(2), 1)
 )
     for x in (points isa Matrix ? eachcol(points) : points)
         if radius > 0
@@ -80,13 +79,6 @@ function pedagogy_plot!(
             Plots.scatter!(p, [x[1]], [x[2]], markersize=2, color=color, grid=false)
         end
     end
-
-    Plots.plot!([0], [0],
-            label="", legend=false,
-            color="white",
-            linewidth=0,
-            aspect_ratio=:equal,
-            grid=false)
 
     Plots.xlims!(window.c[1], window.c[1] + window.w)
     Plots.ylims!(window.c[2], window.c[2] + window.w)
@@ -99,7 +91,7 @@ function pedagogy_plot(
     show_center=true,
     radius=0,
     color="white",
-    window=SquareWindow(zeros(2), 1.0)
+    window=SquareWindow(zeros(2), 1)
 )
 
     p = Plots.plot([0], [0],
