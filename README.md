@@ -3,31 +3,51 @@
 <!-- [![][docs-stable-img]][docs-stable-url]  -->
 [![][docs-dev-img]][docs-dev-url]
 
-Some implementations of partial rejection samplers for
+This module provides a [Julia](https://julialang.org/) implementation of the Partial Rejection Sampling (PRS) methodology, recently developed by [Guo, Jerrum and Liu (2019)](https://guilgautier.github.io/PartialRejectionSampling.jl/dev/references/).
+With PRS, you generate exact samples from product distributions subject to some constraints, see e.g., some [Graph point processes](@ref) and [Spatial point processes](@ref).
 
-- Rooted spanning forests
-- Sink free graphs
-- Hard core model on graph (independent sets)
-- Strauss and Hard Core point processes
-- Ising model
+Given an initial sample from the (unconstrained) product distribution:
 
-based on the works of
+- [Vanilla rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling) resample all variables if any constraint is violated; until all constraints are satisfied,
+- Partial rejection sampling instead identifies a subset of variables to be resampled, starting from variables involved in violated constraints, and preserves the state of the variables outside of this resampling set; until all constraints are satisfied.
 
-- [Guo, Heng, Mark Jerrum, and Jingcheng Liu. 2019. “Uniform Sampling Through the Lovász Local Lemma.” Journal of the ACM 66 (3): 1–31.](https://doi.org/10.1145/3310131.)
+In both cases, the output sample is guaranteed to have the right distribution, i.e., the product distribution subject to the prescribed constraints.
 
-- [Guo, Heng, and Mark Jerrum. 2018. “Perfect Simulation of the Hard Disks Model by Partial Rejection Sampling.” International Colloquium on Automata, Languages, and Programming (ICALP) 107: 69:1--69:10.](https://doi.org/10.4230/LIPIcs.ICALP.2018.69.)
+## Getting Started
 
-- [Moka, Sarat B., and Dirk P. Kroese. 2020. “Perfect Sampling for Gibbs Point Processes Using Partial Rejection Sampling.” Bernoulli 26 (3): 2082–2104](https://doi.org/10.3150/19-BEJ1184)
+### Installation
 
-- [Gil and Amaniampong](https://math.mit.edu/research/undergraduate/spur/documents/2018Gil-Amaniampong.pdf)
+[`PartialRejectionSampling.jl`](https://github.com/guilgautier/PartialRejectionSampling.jl) is not a registered package, yet.
+Nevertheless, you can to install it through
 
-- [Feng, Weiming, Heng Guo, and Yitong Yin. 2019. “Perfect Sampling from Spatial Mixing.” ArXiv:1907.06033](http://arxiv.org/abs/1907.06033)
+```julia
+julia> ]add https://github.com/guilgautier/PartialRejectionSampling.jl
+```
 
-For now, examples are located in the `test` folder.
+see also [how to manage packages with `Pkg`](https://julialang.github.io/Pkg.jl/stable/managing-packages/##Adding-packages-1).
 
-Building a proper documentation is work in progress.
+### Usage
 
-Any feedback is welcome :)
+To start using the package, simply enter
+
+```julia
+julia> using PartialRejectionSampling
+# const PRS = PartialRejectionSampling is made available so you can then use
+# PRS.<type/function_you_want_to_use>
+```
+
+### Tutorial Jupyter notebooks
+
+You can have a look at the tutorial Jupyter [`notebooks`](https://github.com/guilgautier/PartialRejectionSampling.jl/blob/master/notebooks) to play with code.
+
+### Documentation
+
+The documentation is currently available at [![][docs-dev-img]][docs-dev-url]
+
+## Bug reports - Contributions
+
+Feel free to [raise issues](https://github.com/guilgautier/PartialRejectionSampling.jl/issues), make comments or make [pull requests](https://github.com/guilgautier/PartialRejectionSampling.jl/pulls).
+Any feedback is welcome :smiley:.
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://guilgautier.github.io/PartialRejectionSampling.jl/dev

@@ -5,8 +5,8 @@ With PRS, you generate exact samples from product distributions subject to some 
 
 Given an initial sample from the (unconstrained) product distribution:
 
-- [vanilla rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling) resample all variables if any constraint is violated; until all constraints are satisfied,
-- Patial rejection sampling instead constructs a subset of variables to be resampled, starting from variables involved in violated constraints, and preserves the state of the variables outside of this resampling set; until all constraints are satisfied.
+- [Vanilla rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling) resample all variables if any constraint is violated; until all constraints are satisfied,
+- Partial rejection sampling instead identifies a subset of variables to be resampled, starting from variables involved in violated constraints, and preserves the state of the variables outside of this resampling set; until all constraints are satisfied.
 
 In both cases, the output sample is guaranteed to have the right distribution, i.e., the product distribution subject to the prescribed constraints.
 
