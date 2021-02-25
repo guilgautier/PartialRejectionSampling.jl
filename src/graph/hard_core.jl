@@ -102,6 +102,9 @@ Sample from [`PRS.HardCoreGraph`](@ref) using Partial Rejection Sampling (PRS), 
 
 An illustration of the procedure on a ``5\\times 5`` grid graph.
 
+- red: variables involved in constraints violation (gray neighboring nodes)
+- orange: variables to be resampled (red nodes and their neighborhood)
+
 ![assets/hard_core_graph.gif](assets/hard_core_graph.gif)
 """
 function generate_sample_prs(

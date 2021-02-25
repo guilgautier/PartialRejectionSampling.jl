@@ -70,6 +70,9 @@ Generate an orientated version of `pp.graph` uniformly at random among all possi
 
 A illustration of the procedure on a ``5 \\times 5`` grid grah.
 
+- red: variables involved in constraints violation (orientation of the edges pointing to a sink node)
+- orange: variables resampled (orientation of the previous edges)
+
 ![assets/sink_free_graph_prs.gif](assets/sink_free_graph_prs.gif)
 """
 function generate_sample_prs(

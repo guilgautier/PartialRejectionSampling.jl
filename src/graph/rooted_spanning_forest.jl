@@ -91,6 +91,9 @@ Generate a rooted spanning forest of `pp.graph`, uniformly at random among all r
 
 An illustration of the procedure on a ``5\\times 5`` grid graph, with `roots=[13]`
 
+- red: variables involved in constraints violation (edges forming a cycle)
+- orange: variables resampled (edges originating from a red/orange node)
+
 ![assets/rooted_spanning_tree_prs.gif](assets/rooted_spanning_tree_prs.gif)
 """
 function generate_sample_prs(
