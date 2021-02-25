@@ -132,7 +132,6 @@ function color_sinks(
     return c_nodes, c_edges
 end
 
-
 function plot(
     pp::PRS.AbstractSpatialPointProcess,
     points;
@@ -141,7 +140,6 @@ function plot(
     color="white",
     window::Union{Nothing, PRS.AbstractSpatialWindow}=nothing
 )
-
     p = Plots.plot([0], [0],
             label="", legend=false,
             color="white",
@@ -152,7 +150,7 @@ function plot(
 
     for x in (points isa Matrix ? eachcol(points) : points)
         if radius > 0
-            Plots.plot!(p, LS.Ball2(vec(x), radius), color=color, grid=false)
+            plot_disk!(p, x, radius, color)
         end
         if show_center
             Plots.scatter!(p, [x[1]], [x[2]], markersize=2, color=color, grid=false)
@@ -164,5 +162,13 @@ function plot(
     Plots.ylims!(win.c[2], win.c[2] + win.w[win.w isa Real ? 1 : 2])
 
     return p
+end
 
+function plot_disk!(p, center, radius, color=:white)
+    θ = LinRange(0, 2π, 15)
+    x, y = center[1] .+ radius .* cos.(θ), center[2] .+ radius .* sin.(θ)
+
+    Plots.plot!(p, x, y, seriestype=[:shape], c=color, linewidth=0.5, legend=false, fillapha=0.2)
+
+    return p
 end
