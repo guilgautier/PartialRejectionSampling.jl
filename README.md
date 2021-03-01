@@ -38,7 +38,7 @@ julia> using PartialRejectionSampling
 
 ### Tutorial Jupyter notebooks
 
-You can have a look at the tutorial Jupyter [`notebooks`](https://github.com/guilgautier/PartialRejectionSampling.jl/blob/master/notebooks) to play with code.
+You can also have a look at the tutorial Jupyter [`notebooks`](https://github.com/guilgautier/PartialRejectionSampling.jl/blob/master/notebooks) to play with the code.
 
 ### Documentation
 

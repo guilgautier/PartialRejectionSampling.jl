@@ -32,6 +32,10 @@ julia> using PartialRejectionSampling
 # PRS.<type/function_you_want_to_use>
 ```
 
+### Tutorial Jupyter notebooks
+
+You can also have a look at the tutorial Jupyter [`notebooks`](https://github.com/guilgautier/PartialRejectionSampling.jl/blob/master/notebooks) to play with the code.
+
 ## Index
 
 ### Types
