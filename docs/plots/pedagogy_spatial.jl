@@ -3,9 +3,6 @@ using Distributions
 
 using Plots
 
-using LazySets
-const LS = LazySets
-
 # Pedagogy
 function pedagogy_generate_sample_prs(
         pp::PRS.HardCorePointProcess{T};
@@ -73,7 +70,7 @@ function pedagogy_plot!(
 )
     for x in (points isa Matrix ? eachcol(points) : points)
         if radius > 0
-            Plots.plot!(p, LS.Ball2(vec(x), radius), color=color, grid=false)
+            plot_disk!(p, x, radius, color)
         end
         if show_center
             Plots.scatter!(p, [x[1]], [x[2]], markersize=2, color=color, grid=false)
@@ -103,6 +100,15 @@ function pedagogy_plot(
             title="")
 
     pedagogy_plot!(p, points, show_center, radius, color, window)
+
+    return p
+end
+
+function plot_disk!(p, center, radius, color=:white)
+    θ = LinRange(0, 2π, 15)
+    x, y = center[1] .+ radius .* cos.(θ), center[2] .+ radius .* sin.(θ)
+
+    Plots.plot!(p, x, y, seriestype=[:shape], c=color, linewidth=0.5, legend=false, fillapha=0.2)
 
     return p
 end
