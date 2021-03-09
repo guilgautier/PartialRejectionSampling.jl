@@ -106,7 +106,10 @@ end
 ## Sampling
 
 @doc raw"""
-    generate_sample_prs(pp::Ising; rng=-1)
+    generate_sample_prs(
+        [rng::Random.AbstractRNG,]
+        pp::Ising
+    )
 
 Generate an exact sample form `pp` using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite).
 
@@ -117,13 +120,14 @@ Default sampler is [`PRS.generate_sample_grid_prs`](@ref).
 - [FeViYi19](@cite),
 - [FeGuYi19](@cite) [`PRS.generate_sample_gibbs_perfect`](@ref).
 """
-generate_sample_prs(pp::Ising; rng=-1) = generate_sample_grid_prs(pp; rng=rng)
+generate_sample_prs(rng::Random.AbstractRNG, pp::Ising) = generate_sample_grid_prs(rng, pp)
+# generate_sample_prs(pp::Ising) = generate_sample_prs(Random.default_rng(), pp)
 
 @doc raw"""
     generate_sample(
+        [rng::Random.AbstractRNG,]
         pp::Ising{T},
-        idx::T;
-        rng=-1
+        idx::T
     )::T where {T<:Int}
 
 Generate an exact sample from the marginal distribution of state ``i=`` `idx` of `pp`.
@@ -140,42 +144,48 @@ More specifically,
 where ``\sigma`` denotes the [sigmoid function](https://en.wikipedia.org/wiki/Sigmoid_function).
 """
 function generate_sample(
+    rng::Random.AbstractRNG,
     pp::Ising{T},
-    idx::T;
-    rng=-1
+    idx::T
 )::T where {T<:Int}
-    rng = getRNG(rng)
     hᵢ = pp.h isa Real ? pp.h : pp.h[idx]
     return rand(rng) < sigmoid(hᵢ) ? one(T) : -one(T)
 end
 
+# function generate_sample(
+#     pp::Ising{T},
+#     idx::T
+# )::T where {T<:Int}
+#     return generate_sample(Random.default_rng(), pp, idx)
+# end
+
 @doc raw"""
     generate_sample!(
+        rng::Random.AbstractRNG,
         state::AbstractVector{T},
         indices,
-        ising::Ising{T};
-        rng=-1
+        ising::Ising{T}
     ) where {T<:Int}
 
 Generate an exact sample from the marginal distribution of each states of the [`PRS.Ising`](@ref) model `ising` at the prescribed `indices`.
 """
 function generate_sample!(
+    rng::Random.AbstractRNG,
     state::AbstractVector{T},
     indices,
-    ising::Ising{T};
-    rng=-1
+    ising::Ising{T}
 ) where {T<:Int}
     for i in indices
-        state[i] = generate_sample(ising, i; rng=rng)
+        state[i] = generate_sample(rng, ising, i)
     end
 end
 
 @doc raw"""
     generate_sample_conditional!(
+        rng::Random.AbstractRNG,
         state::AbstractVector{T},
         i::T,
-        ising::Ising{T};
-        rng=-1
+        ising::Ising{T}
     ) where {T<:Int}
 
 Generate an exact sample from the conditional distribution of the state ``x_i`` given its neighboring states in `ising.graph`.
@@ -190,12 +200,11 @@ where ``\sigma`` denotes the [sigmoid function](https://en.wikipedia.org/wiki/Si
 ```
 """
 function generate_sample_conditional!(
+    rng::Random.AbstractRNG,
     state::AbstractVector{T},
     i::T,
-    ising::Ising{T};
-    rng=-1
+    ising::Ising{T}
 ) where {T<:Int}
-    rng = getRNG(rng)
     hᵢ = ising.h isa Number ? ising.h : ising.h[i]
     proba = sigmoid(hᵢ + ising.J * sum(state[j] for j in LG.neighbors(ising.graph, i)))
     state[i] = rand(rng) < proba ? 1 : -1

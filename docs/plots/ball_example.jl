@@ -1,12 +1,11 @@
 using PartialRejectionSampling
 const PRS = PartialRejectionSampling
 
-c, w = [0.0, 0.0], 10.0
-win = PRS.SquareWindow(c, w)
+c, r = rand(2), 10
 
-r = 4
-hc = PRS.HardCorePointProcess(b, r, win)
-
+using Random
+rng = Random.MersenneTwister(123)
+@time pts = rand(rng, PRS.BallWindow(c, r), 10)
 @time pts = rand(PRS.BallWindow(c, r), 10)
 
 using Plots

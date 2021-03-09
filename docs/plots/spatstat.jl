@@ -15,7 +15,10 @@ win = PRS.SquareWindow(c, w)
 hc = PRS.HardCorePointProcess(b, r, win)
 
 # Time comparison PRS / spatstat
-@time PRS.generate_sample_prs(hc; rng=-1);
+using Random
+rng = Random.MersenneTwister(123)
+
+@time PRS.generate_sample_prs(rng, hc);
 @time rspatstat.rHardcore(beta=hc.β, R=hc.r);
 
 # K-plot with spatstat
@@ -27,7 +30,7 @@ plot(K)
 """
 
 # K-plot with PRS
-sampl_PRS = hcat(PRS.generate_sample_prs(hc; rng=-1)...)
+sampl_PRS = hcat(PRS.generate_sample_prs(rng, hc)...)
 
 R"""
 library(spatstat)

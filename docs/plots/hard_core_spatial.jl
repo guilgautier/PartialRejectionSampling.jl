@@ -10,8 +10,9 @@ win = PRS.SquareWindow(c, w)
 
 hc = PRS.HardCorePointProcess(b, r, win)
 
-seed = 123
-@time sample = PRS.generate_sample_prs(hc; rng=seed)
-# @time sample = PRS.generate_sample_grid_prs(hc; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_prs(rng, hc)
+# @time sample = PRS.generate_sample_grid_prs(rng, hc)
 
 p = plot(hc, sample; title="")

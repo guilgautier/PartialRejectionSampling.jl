@@ -7,7 +7,8 @@ roots = [1, 5]
 
 rsf = PRS.RootedSpanningForest(g, roots)
 
-seed = 123
-@time sample = PRS.generate_sample_prs(rsf; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_prs(rng, rsf)
 
-p = plot(rsf, sample, dims...; file="docs/plots/output/rooted_spanning_forest.pdf")
+p = plot(rsf, sample, dims, "docs/plots/output/rooted_spanning_forest.pdf")

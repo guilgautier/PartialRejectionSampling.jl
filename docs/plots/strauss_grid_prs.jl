@@ -14,8 +14,9 @@ win = PRS.SquareWindow(c, w)
 
 strauss = PRS.StraussPointProcess(β, γ, r, win)
 
-seed = 123
-@time sample = PRS.generate_sample_grid_prs(strauss; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_grid_prs(rng, strauss)
 
 p = pedagogy_plot(sample,
     true,

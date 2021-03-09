@@ -6,7 +6,8 @@ g = LG.grid(dims)
 
 sfg = PRS.SinkFreeGraph(g)
 
-seed = 123
-@time sample = PRS.generate_sample_prs(sfg; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_prs(rng, sfg)
 
-p = plot(sfg, sample, dims...; file="docs/plots/output/sink_free_graph.pdf")
+p = plot(sfg, sample, dims, "docs/plots/output/sink_free_graph.pdf")

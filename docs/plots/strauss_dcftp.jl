@@ -9,8 +9,9 @@ win = PRS.SquareWindow(c, w)
 
 strauss = PRS.StraussPointProcess(β, γ, r, win)
 
-seed = 123
-@time sample = PRS.generate_sample_dcftp(strauss; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_dcftp(rng, strauss)
 
 p = plot(strauss, sample; title="")
 Plots.savefig(p, "docs/plots/output/strauss_dcftp.pdf")

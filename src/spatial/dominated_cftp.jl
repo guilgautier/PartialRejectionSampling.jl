@@ -1,5 +1,5 @@
 """
-Implementation of dominated Coupling From The Past (dCFTP) developed by [KeMo99](@cite) and [KeMo00](@cite)
+Implementation of dominated Coupling From The Past (dCFTP) developed by [KeMo99](@cite) and [KeMo00](@cite) for [`PRS.AbstractSpatialPointProcess`](@ref).
 
 **See also**
 
@@ -45,10 +45,10 @@ function isattractive(pp::AbstractSpatialPointProcess) end
 
 """
     generate_sample_dcftp(
+        [rng::Random.AbstractRNG,]
         pp::AbstractSpatialPointProcess{T};
-        win::Union{Nothing,AbstractWindow}=nothing,
-        n₀::Int=1,
-        rng=-1
+        win::Union{Nothing,AbstractSpatialWindow}=nothing,
+        n₀::Int=1
     )::Vector{T} where {T}
 
 Generate an exact sample from a spatial point process `pp` on window `win` using dominated coupling from the past.
@@ -63,14 +63,12 @@ Generate an exact sample from a spatial point process `pp` on window `win` using
 - Section 11.2.6 [MoWa04](@cite)
 """
 function generate_sample_dcftp(
-    pp::AbstractSpatialPointProcess{T};
-    win::Union{Nothing,AbstractWindow}=nothing,
-    n₀::Int=1,
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::AbstractSpatialPointProcess{T},
+    win::Union{Nothing,AbstractSpatialWindow}=nothing,
+    n₀::Int=1
 )::Vector{T} where {T}
-
     @assert n₀ >= 1
-    rng = getRNG(rng)
 
     window_ = win === nothing ? window(pp) : win
     β = upper_bound_papangelou_conditional_intensity(pp)
@@ -78,29 +76,33 @@ function generate_sample_dcftp(
 
     # Dominating process
     hppp = HomogeneousPoissonPointProcess(β, window_)
-    D = Set{T}(eachcol(generate_sample(hppp; rng=rng)))
+    D = Set{T}(eachcol(generate_sample(rng, hppp)))
 
     M = Float64[]  # Marking process
     R = T[]        # Recording process
 
     steps = -1:-1:-n₀
     while true
-        backward_extend!(D, M, R, steps, birth_rate, window_; rng=rng)
+        backward_extend!(rng, D, M, R, steps, birth_rate, window_)
         coupling, L = forward_coupling(D, M, R, pp, β)
         coupling && return collect(L)
         steps = (steps.stop-1):-1:(2*steps.stop)
     end
 end
 
+function generate_sample_dcftp(pp::AbstractPointProcess, args...)
+    return generate_sample_dcftp(Random.default_rng(), pp, args...)
+end
+
 """
     backward_extend!(
+        rng::Random.AbstractRNG,
         D::Set{T},          # Dominating process
         M::Vector{Float64}, # Marking process
         R::Vector{T},       # Recording process
         steps::StepRange,   # Number of backward steps
         birth_rate::Real,
-        win::AbstractWindow;
-        rng=-1
+        win::AbstractSpatialWindow
     ) where {T}
 
 Sample from the dominating birth-death process backwards in time according to `steps`.
@@ -112,15 +114,14 @@ The final state of the dominating process is updated to `D`.
 - `SBDevolve()` [KeMo99](@cite)
 """
 function backward_extend!(
+    rng::Random.AbstractRNG,
     D::Set{T},          # Dominating process
     M::Vector{Float64}, # Marking process
     R::Vector{T},       # Recording process
     steps::StepRange,   # Number of backward steps
     birth_rate::Real,
-    win::AbstractWindow;
-    rng=-1
+    win::AbstractSpatialWindow
 ) where {T}
-    rng = getRNG(rng)
     for _ in steps
         card_D = length(D)
         if rand(rng) < card_D / (birth_rate + card_D)
@@ -131,7 +132,7 @@ function backward_extend!(
             pushfirst!(M, rand(rng))
         else
             # forward birth (push) ≡ backward death (pushfirst)
-            x = rand(win; rng=rng)
+            x = rand(rng, win)
             push!(D, x)
             pushfirst!(R, x)
             pushfirst!(M, 0.0)
@@ -155,11 +156,11 @@ Check if coalescence occured between the lower and upper bounding processes and 
 - `SBDadd()` [KeMo99](@cite)
 """
 function forward_coupling(
-        D::Set{T},           # Dominating process
-        M::Vector{Float64},  # Marking process
-        R::Vector{T},        # Recording process
-        pp::AbstractSpatialPointProcess{T},
-        β::Real              # Upper bound on papangelou conditional intensity
+    D::Set{T},           # Dominating process
+    M::Vector{Float64},  # Marking process
+    R::Vector{T},        # Recording process
+    pp::AbstractSpatialPointProcess{T},
+    β::Real              # Upper bound on papangelou conditional intensity
 ) where {T}
     # L ⊆ X ⊆ U ⊆ D, where X is the target process
     L, U = empty(D), copy(D)

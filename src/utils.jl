@@ -1,6 +1,3 @@
-getRNG(seed::Integer=-1) = seed >= 0 ? Random.MersenneTwister(seed) : Random.GLOBAL_RNG
-getRNG(seed::Union{Random.MersenneTwister,Random._GLOBAL_RNG}) = seed
-
 @doc raw"""
     sigmoid(x)
 
@@ -38,30 +35,30 @@ function normalize_columns!(X::Matrix, p::Real=2)
     return X
 end
 
-## Graph functions
-
-@doc raw"""
-    uniform_weighted_graph(
-        graph::LG.AbstractGraph;
-        rng=-1
-    )::SWG.SimpleWeightedGraph
-
-Return a weighted version of `graph` where each edge is attached an independent uniform random variable.
 """
-function uniform_weighted_graph(
-    graph::LG.AbstractGraph;
-    rng=-1
-)::SWG.SimpleWeightedGraph
-    rng = getRNG(rng)
-    g = SWG.SimpleWeightedGraph(graph)
-    for e in LG.edges(g)
-        i, j = Tuple(e)
-        @inbounds g.weights[i, j] = g.weights[j, i] = rand(rng, weighttype(g))
-    end
-    return g
+    pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
+
+Pairwise euclidean distance matrix between columns of `X` and `Y`.
+Equivalent to `[norm(x - y) for x in X, y in Y]`.
+"""
+pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
+
+"""
+    pairwise_distances(X; diag_coeff=Inf) = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
+
+Pairwise euclidean distance matrix between columns of `X`
+Equivalent to [`PRS.pairwise_distances`](@ref)`(X, X)` and setting the diagonal elements to `diag_coeff`.
+"""
+function pairwise_distances(X; diag_coeff=Inf)
+    dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
+    dist[LA.diagind(dist)] .= diag_coeff
+    return dist
 end
 
+## Graph functions
+
 edgemap(g::LG.AbstractGraph) = Dict(LG.edges(g) .=> 1:LG.ne(g))
+
 sink_nodes(g::LG.SimpleDiGraph) = [v for v in LG.vertices(g) if LG.outdegree(g, v) == 0]
 
 """
@@ -123,55 +120,99 @@ end
 king_graph(k::Integer, l::Integer) = strong_product(LG.path_graph(l), LG.path_graph(k))
 king_graph(k::Integer) = strong_product(LG.path_graph(k))
 
+"""
+    uniform_weighted_graph(
+        [rng::Random.AbstractRNG,]
+        graph::LG.AbstractGraph
+    )::SWG.SimpleWeightedGraph
+
+Return a weighted version of `graph` where each edge is attached an independent uniform random variable.
+"""
+function uniform_weighted_graph(
+    rng::Random.AbstractRNG,
+    graph::LG.AbstractGraph
+)::SWG.SimpleWeightedGraph
+    g = SWG.SimpleWeightedGraph(graph)
+    for e in LG.edges(g)
+        i, j = Tuple(e)
+        @inbounds g.weights[i, j] = g.weights[j, i] = rand(rng, weighttype(g))
+    end
+    return g
+end
+
+uniform_weighted_graph(graph) = uniform_weighted_graph(Random.default_rng(), graph)
+
+"""
+    random_edge_orientation(
+        rng::Random.AbstractRNG,
+        graph::LG.SimpleGraph{T},
+        p::Real=0.5
+    )::LG.SimpleDiGraph{T} where {T}
+
+Construct an directed version of ``
+"""
 function random_edge_orientation(
-        g::LG.SimpleGraph{T};
-        p::Real=0.5,
-        rng=-1
+    rng::Random.AbstractRNG,
+    graph::LG.SimpleGraph{T},
+    p::Real=0.5
 )::LG.SimpleDiGraph{T} where {T}
     @assert 0 <= p <= 1
-    rng = getRNG(rng)
-    return LG.SimpleDiGraphFromIterator(rand(rng) < p ? e : reverse(e) for e in LG.edges(g))
+    return LG.SimpleDiGraphFromIterator(flip_edge(rng, e, p) for e in LG.edges(graph))
+end
+
+function random_edge_orientation(
+    graph::LG.SimpleGraph,
+    p::Real=0.5
+)
+    return random_edge_orientation(Random.default_rng(), graph, p)
 end
 
 """
+    flip_edge(
+        [rng::Random.AbstractRNG,]
+        edge::LG.Edge,
+        p::Real=0.5
+    )::LG.Edge
+
+return `edge` with probability `p` or `reverse(edge)` with probability `1-p`.
+"""
+function flip_edge(
+    rng::Random.AbstractRNG,
+    edge::LG.Edge,
+    p::Real=0.5
+)::LG.Edge
+    return rand(rng) < p ? edge : reverse(edge)
+end
+
+flip_edge(edge::LG.Edge, p::Real=0.5) = flip_edge(Random.default_rng(), edge, p)
+
+"""
     random_neighbor_assignment(
+        [rng::Random.AbstractRNG,]
         graph::LG.SimpleGraph{T},
-        roots=Set{T}();
-        rng=-1
+        roots=T[]
     )::LG.SimpleDiGraph{T} where {T}
 
 Return a oriented subgraph of `graph` where each vertex except the `roots` is connected to a unique neighbor, i.e., each vertex has outdegree equal to one.
 """
 function random_neighbor_assignment(
+    rng::Random.AbstractRNG,
     graph::LG.SimpleGraph{T},
-    roots=Set{T}();
-    rng=-1
+    roots=T[]
 )::LG.SimpleDiGraph{T} where {T}
-    rng = getRNG(rng)
     g = LG.SimpleDiGraph(LG.nv(graph))
-    for v in setdiff(LG.vertices(g), roots)
-        w = rand(rng, LG.neighbors(graph, v))
-        LG.add_edge!(g, v, w)
+    for v in LG.vertices(g)
+        if v ∉ roots
+            w = rand(rng, LG.neighbors(graph, v))
+            LG.add_edge!(g, v, w)
+        end
     end
     return g
 end
 
-"""
-    pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
-
-Pairwise euclidean distance matrix between columns of `X` and `Y`.
-Equivalent to `[norm(x - y) for x in X, y in Y]`.
-"""
-pairwise_distances(X, Y) = Distances.pairwise(Distances.Euclidean(1e-8), X, Y; dims=2)
-
-"""
-    pairwise_distances(X; diag_coeff=Inf) = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
-
-Pairwise euclidean distance matrix between columns of `X`
-Equivalent to [`PRS.pairwise_distances`](@ref)`(X, X)` and setting the diagonal elements to `diag_coeff`.
-"""
-function pairwise_distances(X; diag_coeff=Inf)
-    dist = Distances.pairwise(Distances.Euclidean(1e-8), X; dims=2)
-    dist[LA.diagind(dist)] .= diag_coeff
-    return dist
+function random_neighbor_assignment(
+    graph::LG.SimpleGraph{T},
+    roots=T[]
+) where {T}
+    return random_neighbor_assignment(Random.default_rng(), graph, roots)
 end

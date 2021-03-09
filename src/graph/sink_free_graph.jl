@@ -38,26 +38,19 @@ SinkFreeGraph{LightGraphs.SimpleGraphs.SimpleDiGraph{Int64}}
 SinkFreeGraph(graph::LG.SimpleGraph{Int64}) = SinkFreeGraph{LG.SimpleDiGraph{Int64}}(graph)
 
 """
-    generate_sample(
-        pp::SinkFreeGraph;
-        rng=-1
-    )
+    generate_sample([rng::Random.AbstractRNG,] pp::SinkFreeGraph)
 
 Generate an exact sample from the [`PRS.SinkFreeGraph`](@ref).
 
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
-function generate_sample(
-    pp::SinkFreeGraph;
-    rng=-1
-)
-    return generate_sample_prs(pp; rng=rng)
-end
+generate_sample(rng::Random.AbstractRNG, pp::SinkFreeGraph) = generate_sample_prs(rng, pp)
+# generate_sample(pp::SinkFreeGraph) = generate_sample_prs(Random.default_rng(), pp)
 
 """
     generate_sample_prs(
-        pp::SinkFreeGraph{T};
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::SinkFreeGraph{T}
     )::T where {T}
 
 Generate an orientated version of `pp.graph` uniformly at random among all possible orientations conditioned on the absence of sinks, using Partial Rejection Sampling (PRS).
@@ -76,11 +69,10 @@ A illustration of the procedure on a ``5 \\times 5`` grid grah.
 ![assets/sink_free_graph_prs.gif](assets/sink_free_graph_prs.gif)
 """
 function generate_sample_prs(
-    pp::SinkFreeGraph{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::SinkFreeGraph{T}
 )::T where {T}
-    rng = getRNG(rng)
-    g = random_edge_orientation(pp.graph; rng=rng)
+    g = random_edge_orientation(rng, pp.graph)
     while true
         sinks = sink_nodes(g)
         isempty(sinks) && break
@@ -97,3 +89,5 @@ function generate_sample_prs(
     end
     return g
 end
+
+# generate_sample_prs(pp::SinkFreeGraph) = generate_sample_prs(Random.default_rng(), pp)

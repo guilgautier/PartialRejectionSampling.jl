@@ -5,20 +5,19 @@ using Plots
 
 # Pedagogy
 function pedagogy_generate_sample_prs(
-        pp::PRS.HardCorePointProcess{T};
-        win::Union{Nothing,PRS.AbstractWindow}=nothing,
-        rng=-1
+    pp::PRS.HardCorePointProcess{T};
+    win::Union{Nothing,PRS.AbstractWindow}=nothing,
+    rng=-1
 )::Vector{T} where {T}
 
     path(i) = joinpath("docs/plots/output/hard_core_spatial", join([lpad(i, 3, "0"), ".pdf"]))
 
-    rng = PRS.getRNG(rng)
     window_ = win === nothing ? PRS.window(pp) : win
 
     n = rand(rng, Distributions.Poisson(pp.β * PRS.volume(window_)))
     points = Matrix{Float64}(undef, PRS.dimension(pp), n)
     for x in eachcol(points)
-        x .= rand(window_; rng=rng)
+        x .= rand(rng, window_)
     end
 
     i = 0
@@ -44,7 +43,7 @@ function pedagogy_generate_sample_prs(
         i+=1
         Plots.savefig(p, path(i))
 
-        resampled = PRS.generate_sample_poisson_union_balls(pp.β, points[:, bad], pp.r; win=window_, rng=rng)
+        resampled = PRS.generate_sample_poisson_union_balls(rng, pp.β, points[:, bad], pp.r, window_)
         pedagogy_plot!(p, resampled, true, 0, "blue", pp.window)
         i+=1
         Plots.savefig(p, path(i))
@@ -61,12 +60,12 @@ function pedagogy_generate_sample_prs(
 end
 
 function pedagogy_plot!(
-        p,
-        points,
-        show_center=true,
-        radius=0,
-        color="white",
-        window=SquareWindow(zeros(2), 1)
+    p,
+    points,
+    show_center=true,
+    radius=0,
+    color="white",
+    window=SquareWindow(zeros(2), 1)
 )
     for x in (points isa Matrix ? eachcol(points) : points)
         if radius > 0
@@ -114,9 +113,9 @@ function plot_disk!(p, center, radius, color=:white)
 end
 
 function plot(
-        pp::PRS.AbstractSpatialPointProcess,
-        points;
-        title=""
+    pp::PRS.AbstractSpatialPointProcess,
+    points;
+    title=""
 )
     p = Plots.plot([0], [0],
             label="", legend=false,

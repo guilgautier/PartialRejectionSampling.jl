@@ -102,9 +102,9 @@ interaction_range(pp::StraussPointProcess) = pp.r
 
 """
     generate_sample(
-        pp::StraussPointProcess{T};
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::StraussPointProcess{T},
+        win::Union{Nothing,AbstractWindow}=nothing
     )::Vector{T} where {T}
 
 Genererate an exact sample from [`PRS.StraussPointProcess`](@ref).
@@ -117,13 +117,19 @@ Default sampler is [`PRS.generate_sample_dcftp`](@ref).
 - [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample(
-    pp::StraussPointProcess{T};
-    win::Union{Nothing,AbstractWindow}=nothing,
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::StraussPointProcess{T},
+    win::Union{Nothing,AbstractWindow}=nothing
 )::Vector{T} where {T}
-    rng = getRNG(rng)
-    return generate_sample_dcftp(pp; win=win, rng=rng)
+    return generate_sample_dcftp(rng, pp, win)
 end
+
+# function generate_sample(
+#     pp::StraussPointProcess,
+#     win::Union{Nothing,AbstractWindow}=nothing
+# )
+#     return generate_sample(Random.default_rng(), pp, win)
+# end
 
 ## dominated CFTP, see dominated_cftp.jl
 
@@ -181,9 +187,9 @@ upper_bound_papangelou_conditional_intensity(pp::StraussPointProcess) = intensit
 
 """
     generate_sample_prs(
-        pp::StraussPointProcess{T};
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::StraussPointProcess{T},
+        win::Union{Nothing,AbstractWindow}=nothing
     )::Vector{T} where {T}
 
 Genererate an exact sample from [`PRS.StraussPointProcess`](@ref) using Partial Rejection Sampling (PRS).
@@ -193,12 +199,19 @@ Default window (`win=nothing`) is `window(pp)=pp.window`.
 Default sampler is [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample_prs(
-    pp::StraussPointProcess{T};
-    win::Union{Nothing,AbstractWindow}=nothing,
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::StraussPointProcess{T},
+    win::Union{Nothing,AbstractWindow}=nothing
 )::Vector{T} where {T}
-    return generate_sample_grid_prs(pp; rng=rng)
+    return generate_sample_grid_prs(rng, pp, win)
 end
+
+# function generate_sample_prs(
+#     pp::StraussPointProcess,
+#     win::Union{Nothing,AbstractWindow}=nothing
+# )
+#     return generate_sample_prs(Random.default_rng(), pp, win)
+# end
 
 # grid Partial Rejection Sampling, see grid_prs.jl
 

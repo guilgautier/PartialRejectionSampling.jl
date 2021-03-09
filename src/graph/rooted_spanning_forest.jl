@@ -8,7 +8,7 @@ It can be viewed as a the product distribution of the uniform distribution on th
 The object has two fields:
 
 - `graph::LG.SimpleGraph{Int64}`
-- `roots::Set{Int64}`
+- `roots::Vector{Int64}`
 
 **See also**
 
@@ -24,7 +24,7 @@ struct RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointPro
     "Graph"
     graph::LG.SimpleGraph{Int64}
     "Roots"
-    roots::Set{Int64}
+    roots::Vector{Int64}
 end
 
 function Base.show(io::IO, pp::RootedSpanningForest{T}) where {T}
@@ -37,7 +37,7 @@ end
         roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
     ) where {T<:Int}
 
-Construct a [`PRS.RootedSpanningForest`](@ref) model on `graph`, rooted at `roots`.
+Construct a [`PRS.RootedSpanningForest`](@ref) model on a **connected** `graph`, rooted at `roots`.
 If `roots === nothing`, a random vertex is selected uniformly at random among `LG.vertices(g)` and considered as `roots`.
 
 ```jldoctest; output = true
@@ -52,16 +52,20 @@ rsf = PRS.RootedSpanningForest(g, roots)
 
 RootedSpanningForest{LightGraphs.SimpleGraphs.SimpleDiGraph{Int64}}
 - graph = {25, 40} undirected simple Int64 graph
-- roots = Set([2, 3, 1])
+- roots = [1, 2, 3]
 ```
 """
 function RootedSpanningForest(
     graph::LG.SimpleGraph{T},
     roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
 ) where {T<:Int}
-    roots_ = Set(roots === nothing ? rand(LG.vertices(graph)) : roots)
+    roots_ = unique(roots === nothing ? rand(LG.vertices(graph)) : roots)
     if issubset(roots_, LG.vertices(graph))
-        return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
+        if LG.is_connected(graph)
+            return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
+        else
+            throw(DomainError(graph, "graph should be connected"))
+        end
     else
         throw(DomainError(roots, "some roots not contained in vertices(graph)"))
     end
@@ -69,20 +73,27 @@ end
 
 """
     generate_sample(
-        pp::RootedSpanningForest{T};
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::RootedSpanningForest
     )
 
 Generate an exact sample from the [`PRS.RootedSpanningForest`](@ref).
 
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
-generate_sample(pp::RootedSpanningForest; rng=-1) = generate_sample_prs(pp; rng=rng)
+function generate_sample(
+    rng::Random.AbstractRNG,
+    pp::RootedSpanningForest
+)
+    return generate_sample_prs(rng, pp)
+end
+
+# generate_sample(pp::RootedSpanningForest) = generate_sample(Random.default_rng(), pp)
 
 """
     generate_sample_prs(
-        pp::RootedSpanningForest{T};
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::RootedSpanningForest{T}
     )::T where {T<:LG.SimpleDiGraph{Int64}}
 
 Generate a rooted spanning forest of `pp.graph`, uniformly at random among all rooted spanning forests rooted at `pp.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite).
@@ -97,22 +108,29 @@ An illustration of the procedure on a ``5\\times 5`` grid graph, with `roots=[13
 ![assets/rooted_spanning_tree_prs.gif](assets/rooted_spanning_tree_prs.gif)
 """
 function generate_sample_prs(
-    pp::RootedSpanningForest{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::RootedSpanningForest{T}
 )::T where {T<:LG.SimpleDiGraph{Int64}}
-    return _generate_sample_rooted_spanning_forest_prs(pp.graph, pp.roots; rng=rng)
+    return _generate_sample_rooted_spanning_forest_prs(rng, pp.graph, pp.roots)
 end
 
+# generate_sample_prs(pp::RootedSpanningForest) = generate_sample_prs(Random.default_rng(), pp)
+
 """
-Generate a rooted spanning forest of `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite).
+    _generate_sample_rooted_spanning_forest_prs(
+        rng::Random.AbstractRNG,
+        graph::LG.SimpleGraph{T},
+        roots
+    )::LG.SimpleDiGraph{T} where {T}
+
+Generate a rooted spanning forest from a **connected** `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Wilson's algorithm.
 """
 function _generate_sample_rooted_spanning_forest_prs(
+    rng::Random.AbstractRNG,
     graph::LG.SimpleGraph{T},
-    roots;
-    rng=-1
+    roots
 )::LG.SimpleDiGraph{T} where {T}
-    rng = getRNG(rng)
-    g = random_neighbor_assignment(graph, roots; rng=rng)
+    g = random_neighbor_assignment(rng, graph, roots)
     while true
         vertices_in_cycles = Set(Iterators.flatten(LG.simplecycles(g)))
         isempty(vertices_in_cycles) && break

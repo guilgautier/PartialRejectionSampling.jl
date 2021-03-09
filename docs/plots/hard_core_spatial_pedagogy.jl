@@ -10,5 +10,6 @@ win = PRS.SquareWindow(c, w)
 
 hc = PRS.HardCorePointProcess(b, r, win)
 
-seed = 123
-pedagogy_generate_sample_prs(hc; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+pedagogy_generate_sample_prs(hc; rng=rng)

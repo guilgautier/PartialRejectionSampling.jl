@@ -69,8 +69,8 @@ end
 
 """
     generate_sample(
-        pp::HardCoreGraph{T};
-        rng=-1
+        [rng=Random.AbstractRNG,]
+        pp::HardCoreGraph{T}
     )::Vector{T} where {T}
 
 Generate an exact sample from the [`PRS.SinkFreeGraph`](@ref).
@@ -78,18 +78,20 @@ Generate an exact sample from the [`PRS.SinkFreeGraph`](@ref).
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
 function generate_sample(
-    pp::HardCoreGraph{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::HardCoreGraph{T}
 )::Vector{T} where {T}
-    return generate_sample_prs(pp; rng=rng)
+    return generate_sample_prs(rng, pp)
 end
+
+# generate_sample(pp::HardCoreGraph) = generate_sample(Random.default_rng(), pp)
 
 ## Partial Rejeciton Sampling (PRS)
 
 """
     generate_sample_prs(
-        pp::HardCoreGraph{T};
-        rng=-1
+        [rng=Random.AbstractRNG,]
+        pp::HardCoreGraph{T}
     )::Vector{T} where {T}
 
 Sample from [`PRS.HardCoreGraph`](@ref) using Partial Rejection Sampling (PRS), see Section 7.2 of [GuJeLi19](@cite)
@@ -108,13 +110,12 @@ An illustration of the procedure on a ``5\\times 5`` grid graph.
 ![assets/hard_core_graph.gif](assets/hard_core_graph.gif)
 """
 function generate_sample_prs(
-    pp::HardCoreGraph{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::HardCoreGraph{T}
 )::Vector{T} where {T}
 
     proba = pp.β / (one(pp.β) + pp.β)
 
-    rng = getRNG(rng)
     adj = LG.adjacency_matrix(pp.graph)
     occupied = randsubseq(rng, LG.vertices(pp.graph), proba)
     while true
@@ -138,3 +139,5 @@ function generate_sample_prs(
     end
     return occupied
 end
+
+# generate_sample_prs(pp::HardCoreGraph) = generate_sample_prs(Random.default_rng(), pp)

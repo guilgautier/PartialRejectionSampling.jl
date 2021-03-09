@@ -7,7 +7,9 @@ H, J = 0.0, 0.01
 
 ising = PRS.Ising(dims, J, H; periodic=periodic)
 
-seed = 123
-@time sample = PRS.generate_sample_grid_prs(ising; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_gibbs_perfect(rng, ising)
 
-p = plot(ising, sample, dims...; file="docs/plots/output/ising/ising_grid_prs.pdf")
+p = plot(ising, sample, dims, "docs/plots/output/ising/ising_grid_prs.pdf";
+         nodelabel=nothing)

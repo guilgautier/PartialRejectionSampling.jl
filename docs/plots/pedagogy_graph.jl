@@ -64,7 +64,8 @@ end
 function plot(
     pp::PRS.Ising,
     state,
-    dims=zeros(2);
+    dims=zeros(2),
+    file="";
     kwargs...
 )
     c_nodes = ifelse.(
@@ -72,42 +73,45 @@ function plot(
             Colors.colorant"gray",
             Colors.colorant"white")
 
-    plot(pp.graph, dims; nodefillc=c_nodes, kwargs...)
+    plot(pp.graph, dims, file; nodefillc=c_nodes, kwargs...)
 end
 
 function plot(
     pp::PRS.HardCoreGraph,
     state,
-    dims=zeros(2);
+    dims=zeros(2),
+    file="";
     kwargs...
 )
     c_nodes = [Colors.colorant"white" for _ in 1:LG.nv(pp.graph)]
-    c_nodes[state] .= Colors.colorant"black"
+    c_nodes[state] .= Colors.colorant"grey"
 
-    plot(pp.graph, dims; nodefillc=c_nodes, kwargs...)
+    plot(pp.graph, dims, file; nodefillc=c_nodes, kwargs...)
 end
 
 function plot(
     pp::PRS.SinkFreeGraph,
     sample,
-    dims=zeros(2);
+    dims=zeros(2),
+    file="";
     kwargs...
 )
     c_nodes, c_edges = color_sinks(sample)
 
-    plot(sample, dims; nodefillc=c_nodes, edgestrokec=c_edges, kwargs...)
+    plot(sample, dims, file; nodefillc=c_nodes, edgestrokec=c_edges, kwargs...)
 end
 
 function plot(
     pp::PRS.RootedSpanningForest,
     sample,
-    dims=zeros(2);
+    dims=zeros(2),
+    file="";
     kwargs...
 )
     c_nodes, c_edges = color_cycles(sample)
     c_nodes[collect(pp.roots)] .= Colors.colorant"orange"
 
-    plot(sample, dims; nodefillc=c_nodes, edgestrokec=c_edges)
+    plot(sample, dims, file; nodefillc=c_nodes, edgestrokec=c_edges)
 end
 
 function color_cycles(

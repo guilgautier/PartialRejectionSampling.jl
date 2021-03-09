@@ -94,9 +94,9 @@ interaction_range(pp::HardCorePointProcess) = pp.r
 
 """
     generate_sample(
-        pp::HardCorePointProcess{T}
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::HardCorePointProcess{T},
+        win::Union{Nothing,AbstractWindow}=nothing
     )::Vector{T} where {T}
 
 Generate an exact sample from the [`PRS.HardCorePointProcess`](@ref).
@@ -111,12 +111,19 @@ Default sampler is [`PRS.generate_sample_prs`](@ref).
 - [`PRS.generate_sample_grid_prs`](@ref).
 """
 function generate_sample(
-    pp::HardCorePointProcess{T};
-    win::Union{Nothing,AbstractWindow}=nothing,
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::HardCorePointProcess{T},
+    win::Union{Nothing,AbstractWindow}=nothing
 )::Vector{T} where {T}
-    return generate_sample_prs(pp; win=win, rng=rng)
+    return generate_sample_prs(rng, pp, win)
 end
+
+# function generate_sample(
+#     pp::HardCorePointProcess,
+#     win::Union{Nothing,AbstractWindow}=nothing
+# )
+#     return generate_sample(Random.default_rng(), pp, win)
+# end
 
 ### dominated CFTP, see dominated_cftp.jl
 
@@ -165,9 +172,9 @@ upper_bound_papangelou_conditional_intensity(pp::HardCorePointProcess) = intensi
 
 @doc raw"""
     generate_sample_prs(
-        pp::HardCorePointProcess{T}
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::HardCorePointProcess{T},
+        win::Union{Nothing,AbstractWindow}=nothing
     )::Vector{T} where {T}
 
 Sample from [`PRS.HardCorePointProcess`](@ref) using Partial Rejection Sampling (PRS) of [GuJe18](@cite).
@@ -186,24 +193,29 @@ A illustration of the procedure for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2`` w
 ![assets/hard_core_spatial_prs.gif](assets/hard_core_spatial_prs.gif)
 """
 function generate_sample_prs(
-    pp::HardCorePointProcess{T};
-    win::Union{Nothing,AbstractWindow}=nothing,
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::HardCorePointProcess{T},
+    win::Union{Nothing,AbstractWindow}=nothing
 )::Vector{T} where {T}
-    rng = getRNG(rng)
     win_ = win === nothing ? window(pp) : win
 
     β, r = intensity(pp), interaction_range(pp)
-    points = generate_sample(HomogeneousPoissonPointProcess(β, win_); rng=rng)
+    points = generate_sample(rng, HomogeneousPoissonPointProcess(β, win_))
     while true
         bad = vec(any(pairwise_distances(points) .<= r, dims=2))
         !any(bad) && break
-        resampled = generate_sample_poisson_union_balls(β, points[:, bad], r;
-                                                        win=win_, rng=rng)
+        resampled = generate_sample_poisson_union_balls(rng, β, points[:, bad], r, win_)
         points = hcat(points[:, .!bad], resampled)
     end
     return collect(T, eachcol(points))
 end
+
+# function generate_sample_prs(
+#     pp::HardCorePointProcess,
+#     win::Union{Nothing,AbstractWindow}=nothing
+# )
+#     return generate_sample_prs(Random.default_rng(), pp, win=win)
+# end
 
 ### grid Partial Rejection Sampling, see grid_prs.jl
 

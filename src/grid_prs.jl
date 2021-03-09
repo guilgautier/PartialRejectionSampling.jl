@@ -57,67 +57,67 @@ Base.isempty(cell::SpatialCellGridPRS) = isempty(cell.value)
 
 """
     generate_sample!(
+        rng::Random.AbstractRNG,
         cell::AbstractCellGridPRS,
-        pp::AbstractPointProcess;
-        rng=-1
+        pp::AbstractPointProcess
     )
 
 Generate an exact sample of `pp` in `cell.window` and save it in `cell.value`
 """
 function generate_sample!(
+    rng::Random.AbstractRNG,
     cell::AbstractCellGridPRS,
-    pp::AbstractPointProcess;
-    rng=-1
+    pp::AbstractPointProcess
 )
-    rng = getRNG(rng)
-    cell.value = generate_sample(pp; win=cell.window, rng=rng)
+    cell.value = generate_sample(rng, pp, cell.window)
 end
 
 """
     generate_sample!(
+        rng::Random.AbstractRNG,
         cells::Vector{T},
         indices,
-        pp::AbstractPointProcess;
-        rng=-1
+        pp::AbstractPointProcess
     ) where {T<:AbstractCellGridPRS}
 
 Apply [`PRS.generate_sample!`](@ref) to each cell of `cells` indexed by `indices`.
 """
 function generate_sample!(
+    rng::Random.AbstractRNG,
     cells::Vector{T},
     indices,
-    pp::AbstractPointProcess;
-    rng=-1
+    pp::AbstractPointProcess
 ) where {T<:AbstractCellGridPRS}
-    rng = getRNG(rng)
     for i in indices
-        generate_sample!(cells[i], pp; rng=rng)
+        generate_sample!(rng, cells[i], pp)
     end
 end
 
 """
     generate_sample_grid_prs(
-        pp::AbstractPointProcess{T};
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::AbstractPointProcess{T}
     )::Vector{T} where {T}
 
 Generate an exact sample from `pp` using grid Partial Rejection Sampling (grid PRS) of [MoKr20](@cite).
 """
 function generate_sample_grid_prs(
-    pp::AbstractPointProcess{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::AbstractPointProcess{T}
 )::Vector{T} where {T}
-    rng = getRNG(rng)
-
-    g = weighted_interaction_graph(pp; rng=rng)
+    g = weighted_interaction_graph(rng, pp)
     cells = initialize_cells(pp)
     resample_indices = Set(1:length(cells))
 
     while !isempty(resample_indices)
-        generate_sample!(cells, resample_indices, pp; rng=rng)
-        resample_indices = find_cells_to_resample_indices!(g, cells, pp; rng=rng)
+        generate_sample!(rng, cells, resample_indices, pp)
+        resample_indices = find_cells_to_resample_indices!(rng, g, cells, pp)
     end
     return vcat(getfield.(cells, :value)...)
+end
+
+function generate_sample_grid_prs(pp::AbstractPointProcess, args...)
+    return generate_sample_grid_prs(Random.default_rng(), pp, args...)
 end
 
 @doc raw"""
@@ -135,10 +135,10 @@ function gibbs_interaction end
 
 @doc raw"""
     find_bad_cells_indices!(
+        [rng::Random.AbstractRNG,]
         g::SWG.SimpleWeightedGraph{T,U},
         cells::Vector{V},
-        pp::AbstractPointProcess;
-        rng=-1
+        pp::AbstractPointProcess
     )::Set{T} where {T,U,V<:AbstractCellGridPRS}
 
 Identify bad events and return the corresponding cells' index.
@@ -155,12 +155,11 @@ where ``U_{ij}`` is the weight of the edge ``\{i,j\}`` in the interaction graph 
 This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function find_bad_cells_indices!(
+    rng::Random.AbstractRNG,
     g::SWG.SimpleWeightedGraph{T,U},
     cells::Vector{V},
-    pp::AbstractPointProcess;
-    rng=-1
+    pp::AbstractPointProcess
 )::Set{T} where {T,U,V<:AbstractCellGridPRS}
-    rng = getRNG(rng)
     bad = Set{T}()
     for e in LG.edges(g)
         i, j = Tuple(e)
@@ -175,10 +174,10 @@ end
 
 @doc raw"""
     find_cells_to_resample_indices!(
+        rng::Random.AbstractRNG,
         g::SWG.SimpleWeightedGraph{T,U},
         cells::Vector{V},
-        pp::AbstractPointProcess;
-        rng=-1
+        pp::AbstractPointProcess
     )::Set{T} where {T,U,V<:AbstractCellGridPRS}
 
 Identify the set of events to be resampled as constructed by Algorithm 5 in [GuJeLi19](@cite) as part of the Partial Rejection Sampling (PRS) method.
@@ -191,13 +190,12 @@ This function is used as a subroutine of the grid PRS methodology of [MoKr20](@c
 This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function find_cells_to_resample_indices!(
-        g::SWG.SimpleWeightedGraph{T,U},
-        cells::Vector{V},
-        pp::AbstractPointProcess;
-        rng=-1
+    rng::Random.AbstractRNG,
+    g::SWG.SimpleWeightedGraph{T,U},
+    cells::Vector{V},
+    pp::AbstractPointProcess
 )::Set{T} where {T,U,V<:AbstractCellGridPRS}
-    rng = getRNG(rng)
-    R = find_bad_cells_indices!(g, cells, pp; rng=rng)
+    R = find_bad_cells_indices!(rng, g, cells, pp)
     ∂R, ∂R_tmp = copy(R), empty(R)
     while !isempty(∂R)
         for i in ∂R
@@ -223,8 +221,8 @@ end
 
 """
     weighted_interaction_graph(
+        rng::Random.AbstractRNG,
         pp::AbstractSpatialPointProcess;
-        rng=-1
     )::SWG.SimpleWeightedGraph
 
 Construct the weighted interaction graph ([King graph](https://en.wikipedia.org/wiki/King%27s_graph)) used in [`PRS.generate_sample_grid_prs`](@ref), to generate exact samples from [`PRS.AbstractSpatialPointProcess`](@ref)
@@ -237,16 +235,16 @@ Each cell represents a vertex of the interaction (king) graph and each edge carr
 - Figure 4 [MoKr20](@cite)
 """
 function weighted_interaction_graph(
-    spp::AbstractSpatialPointProcess;
-    rng=-1
+    rng::Random.AbstractRNG,
+    spp::AbstractSpatialPointProcess
 )::SWG.SimpleWeightedGraph
     window_ = window(spp)
     if allequal(window_.w)
         nb_cells_x = ceil(Int, window_.w[1] / spp.r)
-        return uniform_weighted_graph(king_graph(nb_cells_x); rng=rng)
+        return uniform_weighted_graph(rng, king_graph(nb_cells_x))
     else
         nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ spp.r)
-        return uniform_weighted_graph(king_graph(nb_cells_x, nb_cells_y); rng=rng)
+        return uniform_weighted_graph(rng, king_graph(nb_cells_x, nb_cells_y))
     end
 end
 

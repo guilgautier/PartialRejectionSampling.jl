@@ -6,8 +6,8 @@ g = LG.grid(dims)
 roots = [13]
 pp = PRS.RootedSpanningForest(g, roots)
 
-seed = 123
-rng = PRS.getRNG(seed)
+using Random
+rng = Random.MersenneTwister(123)
 
 c_node_roots = Colors.colorant"lightgreen";
 c_node_normal = Colors.colorant"turquoise";
@@ -28,7 +28,7 @@ c_nodes[roots] .= c_node_roots
 plot(pp.graph, dims, path(i); nodefillc=c_nodes, edgestrokec=c_edge_normal)
 
 i += 1
-g = PRS.random_neighbor_assignment(pp.graph, roots; rng=rng)
+g = PRS.random_neighbor_assignment(rng, pp.graph, roots)
 plot(g, dims, path(i); nodefillc=c_nodes, edgestrokec=c_edge_normal)
 
 while true

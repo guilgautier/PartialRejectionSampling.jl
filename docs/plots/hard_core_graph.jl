@@ -7,7 +7,10 @@ g = LG.grid(dims)
 
 hcg = PRS.HardCoreGraph(g, β)
 
-seed = 123
-@time sample = PRS.generate_sample_prs(hcg; rng=seed)
+using Random
+rng = Random.MersenneTwister(123)
+@time sample = PRS.generate_sample_prs(rng, hcg)
 
-p = plot(hcg, sample, dims; file="docs/plots/output/hard_core_graph.pdf")
+p = plot(hcg, sample, dims, "docs/plots/output/hard_core_graph.pdf")
+
+@time sample = PRS.generate_sample_prs(hcg)

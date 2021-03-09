@@ -6,8 +6,8 @@ g = LG.grid(dims)
 
 pp = PRS.SinkFreeGraph(g)
 
-seed = 123
-rng = PRS.getRNG(seed)
+using Random
+rng = Random.MersenneTwister(123)
 
 c_node_normal = Colors.colorant"turquoise";
 c_node_update = Colors.colorant"orange";
@@ -25,7 +25,7 @@ i = 0
 plot(pp.graph, dims, path(i); nodefillc=c_node_normal, edgestrokec=c_edge_normal)
 
 i += 1
-g = PRS.random_edge_orientation(pp.graph; rng=rng)
+g = PRS.random_edge_orientation(rng, pp.graph)
 plot(g, dims, path(i); nodefillc=c_node_normal, edgestrokec=c_edge_normal)
 
 while true

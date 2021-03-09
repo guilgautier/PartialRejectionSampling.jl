@@ -39,102 +39,109 @@ end
 
 """
     generate_sample(
-        pfs::PatternFreeString{T},
-        size::Int;
-        rng=-1
+        [rng=Random.AbstractRNG,]
+        pp::PatternFreeString{T},
+        size::Int
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `pfs.alphabet` with no occurence of the pattern `pfs.pattern`.
+Generate a string uniformly at random among all strings made of characters from `pp.alphabet` with no occurence of the pattern `pp.pattern`.
 
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
 function generate_sample(
-        pfs::PatternFreeString{T},
-        size::Int;
-        rng=-1
+    rng::Random.AbstractRNG,
+    pp::PatternFreeString{T},
+    size::Int
 )::T where {T}
-    return generate_sample_prs(pfs, size; rng=rng)
+    return generate_sample_prs(rng, pp, size)
 end
+
+# function generate_sample(pp::PatternFreeString, size::Int)
+#     return generate_sample_prs(Random.default_rng(), pp, size)
+# end
 
 """
     generate_sample_prs(
-        pfs::PatternFreeString{T},
-        size::Int;
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::PatternFreeString{T},
+        size::Int
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `pfs.alphabet` with no occurence of the pattern `pfs.pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite).
+Generate a string uniformly at random among all strings made of characters from `pp.alphabet` with no occurence of the pattern `pp.pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite).
 
-```jldoctest; output = true
+```@example
 using PartialRejectionSampling
-pfs = PRS.PatternFreeString(["A", "C", "G", "T"], "ATGTA")
-PRS.generate_sample_prs(pfs, 20; rng=1)
-# output
-"TCCAAATCTCCCCTGTCTAT"
+pp = PRS.PatternFreeString(["A", "C", "G", "T"], "ATGTA")
+PRS.generate_sample_prs(pp, 20)
 ```
 """
 function generate_sample_prs(
-        pfs::PatternFreeString{T},
-        size::Int;
-        rng=-1
+    rng::Random.AbstractRNG,
+    pp::PatternFreeString{T},
+    size::Int
 )::T where {T<:String}
     @assert size > 0
-    return _generate_sample_pattern_free_string_prs(pfs.alphabet, pfs.pattern, size; rng=rng)
+    return _generate_sample_pattern_free_string_prs(rng, pp.alphabet, pp.pattern, size)
 end
 
-@doc raw"""
-    generate_pattern_free_string_prs(
+# function generate_sample_prs(
+#     pp::PatternFreeString,
+#     size::Int
+# )
+#     return generate_sample(Random.default_rng(), pp, size)
+# end
+
+"""
+    _generate_pattern_free_string_prs(
+        rng::Random.AbstractRNG,
         alphabet::Vector{T},
         pattern::T,
-        size::Int;
-        rng=-1
+        size::Int
     )::T where {T<:AbstractString}
 
 Generate a string uniformly at random among all strings made of characters from `alphabet` with no occurence of the pattern `pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite)
 """
 function _generate_sample_pattern_free_string_prs(
+    rng::Random.AbstractRNG,
     alphabet::Vector{T},
     pattern::T,
-    size::Int;
-    rng=-1
+    size::Int
 )::T where {T<:AbstractString}
 
     @assert size > 0
     @assert !isempty(alphabet)
     @assert !isempty(pattern)
-    rng = getRNG(rng)
 
     pref_suff = find_prefix_suffix(pattern)
 
-    pfs = fill("", size)
+    pp = fill("", size)
     resample_indices = Set(1:size)
 
     while !isempty(resample_indices)
-        generate_sample!(pfs, resample_indices, alphabet; rng=rng)
-        resample_indices = find_characters_to_resample(pfs, pattern, pref_suff)
+        generate_sample!(rng, pp, resample_indices, alphabet)
+        resample_indices = find_characters_to_resample(pp, pattern, pref_suff)
     end
-    return join(pfs)
+    return join(pp)
 end
 
 find_prefix_suffix(s::String) = [i for i in 1:div(length(s), 2) if s[1:i] == s[end-i+1:end]]
 
 """
     generate_sample!(
+        [rng::Random.AbstractRNG,]
         string_vec::Vector{T},
         indices,
-        alphabet::Vector{T};
-        rng=-1
+        alphabet::Vector{T}
     ) where {T<:AbstractString}
 
-Generate a character uniformly at random from `alphabet` at positions prescribed by `indices` in `string_vec`
+Generate a character uniformly at random from `alphabet` at positions prescribed by `indices` in `string_vec`.
 """
 function generate_sample!(
+    rng::Random.AbstractRNG,
     string_vec::Vector{T},
     indices,
-    alphabet::Vector{T};
-    rng=-1
+    alphabet::Vector{T}
 ) where {T<:AbstractString}
-    rng = getRNG(rng)
     for i in indices
         string_vec[i] = rand(rng, alphabet)
     end

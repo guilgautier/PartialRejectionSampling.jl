@@ -61,9 +61,9 @@ intensity(pp::HomogeneousPoissonPointProcess) = pp.β
 
 """
     generate_sample(
-        pp::HomogeneousPoissonPointProcess{Vector{T}};
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        pp::HomogeneousPoissonPointProcess{Vector{T}},
+        win::Union{Nothing,AbstractWindow}=nothing
     )::Matrix{T} where {T<:Float64}
 
 Generate an exact sample from [`PRS.HomogeneousPoissonPointProcess`](@ref) on window `win`.
@@ -72,23 +72,29 @@ Sampled points are stored as columns of the output matrix.
 Default window (`win=nothing`) is `window(pp)`.
 """
 function generate_sample(
-        pp::HomogeneousPoissonPointProcess{Vector{T}};
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+    rng::Random.AbstractRNG,
+    pp::HomogeneousPoissonPointProcess{Vector{T}},
+    win::Union{Nothing,AbstractWindow}=nothing
 )::Matrix{T} where {T<:Float64}
-    rng = getRNG(rng)
     window_ = win === nothing ? window(pp) : win
     n = rand(rng, Distributions.Poisson(pp.β * volume(window_)))
-    return rand(window_, n; rng=rng)
+    return rand(rng, window_, n)
 end
+
+# function generate_sample(
+#     pp::HomogeneousPoissonPointProcess,
+#     win::Union{Nothing,AbstractWindow}=nothing
+# )
+#     return generate_sample(Random.default_rng(), pp, win=win)
+# end
 
 @doc raw"""
     generate_sample_poisson_union_balls(
+        [rng::Random.AbstractRNG,]
         β::Real,
         centers::Matrix,
-        radius::Real;
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+        radius::Real,
+        win::Union{Nothing,AbstractWindow}=nothing
     )::Matrix{Float64}
 
 Generate an exact sample from a homogenous [`PRS.HomogeneousPoissonPointProcess`](@ref) Poisson(β) on ``\bigcup_{i} B(c_i, r)`` (union of balls centered at ``c_i`` with the same radius ``r``).
@@ -105,13 +111,12 @@ If `win ≂̸ nothing`, returns the points falling in `win`.
     - ...
 """
 function generate_sample_poisson_union_balls(
-        β::Real,
-        centers::Matrix,
-        radius::Real;
-        win::Union{Nothing,AbstractWindow}=nothing,
-        rng=-1
+    rng::Random.AbstractRNG,
+    β::Real,
+    centers::Matrix,
+    radius::Real,
+    win::Union{Nothing,AbstractWindow}=nothing
 )::Matrix{Float64}
-    rng = getRNG(rng)
     d = size(centers, 1)
     !(win === nothing) && @assert dimension(win) == d
 
@@ -120,7 +125,7 @@ function generate_sample_poisson_union_balls(
     for (i, c) in enumerate(eachcol(centers))
         n = rand(rng, 𝒫)
         n == 0 && continue
-        proposed = rand(BallWindow(c, radius), n; rng=rng)
+        proposed = rand(rng, BallWindow(c, radius), n)
         if i == 1
             points = hcat(points, proposed)
             continue
@@ -132,7 +137,15 @@ function generate_sample_poisson_union_balls(
 
     if win === nothing || isempty(points)
         return points
-    else
-        return points[:, vec(mapslices(x -> x in win, points; dims=1))]
     end
+    return points[:, vec(mapslices(x -> x in win, points; dims=1))]
+end
+
+function generate_sample_poisson_union_balls(
+    β::Real,
+    centers::Matrix,
+    radius::Real,
+    win::Union{Nothing,AbstractWindow}=nothing
+)
+    generate_sample_poisson_union_balls(Random.default_rng(), β, centers, radius, win)
 end

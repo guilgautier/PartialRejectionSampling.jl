@@ -2,8 +2,8 @@
 
 """
     weighted_interaction_graph(
-        ising::Ising;
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        ising::Ising
     )::SWG.SimpleWeightedGraph
 
 Return a weighted version of `ising.graph` where each edge is attached an independent uniform random variable.
@@ -11,11 +11,13 @@ Return a weighted version of `ising.graph` where each edge is attached an indepe
 This is a subroutine of [`PRS.generate_sample_grid_prs`](@ref).
 """
 function weighted_interaction_graph(
-    ising::Ising;
-    rng=-1
+    rng::Random.AbstractRNG,
+    ising::Ising
 )::SWG.SimpleWeightedGraph
-    return uniform_weighted_graph(ising.graph; rng=rng)
+    return uniform_weighted_graph(rng, ising.graph)
 end
+
+weighted_interaction_graph(ising::Ising) = weighted_interaction_graph(Random.default_rng(), ising)
 
 @doc raw"""
     initialize_cells(
@@ -34,20 +36,22 @@ end
 
 """
     generate_sample(
+        [rng::Random.AbstractRNG,]
         pp::Ising;
-        win::GraphNode,
-        rng=-1
+        win::GraphNode
     )
 
 Generate an exact sample from the marginal distribution of `pp` at state indexed by `win.idx`.
 """
 function generate_sample(
-    pp::Ising;
-    win::GraphNode,
-    rng=-1
+    rng::Random.AbstractRNG,
+    pp::Ising,
+    win::GraphNode
 )
-    return generate_sample(pp, win.idx; rng=rng)
+    return generate_sample(rng, pp, win.idx)
 end
+
+# generate_sample(pp::Ising, win::GraphNode) = generate_sample(Random.default_rng(), pp, win)
 
 @doc raw"""
     gibbs_interaction(

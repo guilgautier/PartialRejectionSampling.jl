@@ -174,37 +174,38 @@ function Base.in(
     return Distances.euclidean(x, win.c) <= win.r
 end
 
+Base.rand(win::AbstractSpatialWindow) = rand(Random.default_rng(), win)
+Base.rand(win::AbstractSpatialWindow, n::Int) = rand(Random.default_rng(), win, n)
+
 """
     Base.rand(
-        win::AbstractRectangleWindow{T};
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        win::AbstractRectangleWindow{T}
     )::Vector{T} where {T}
 
 Sample uniformly at random in window `win`.
 """
 function Base.rand(
-    win::AbstractRectangleWindow{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    win::AbstractRectangleWindow{T}
 )::Vector{T} where {T}
-    rng = getRNG(rng)
     return win.w .* rand(rng, dimension(win)) .+ win.c
 end
 
 """
     Base.rand(
+        [rng::Random.AbstractRNG,]
         win::AbstractRectangleWindow{T},
-        n::Int;
-        rng=-1
+        n::Int
     )::Matrix{T} where {T}
 
 Sample `n` points uniformly at random in window `win`.
 """
 function Base.rand(
+    rng::Random.AbstractRNG,
     win::AbstractRectangleWindow{T},
-    n::Int;
-    rng=-1
+    n::Int
 )::Matrix{T} where {T}
-    rng = getRNG(rng)
     x = Matrix{T}(undef, dimension(win), n)
     rand!(rng, x)
     return win.w .* x .+ win.c
@@ -212,17 +213,16 @@ end
 
 """
     Base.rand(
-        win::BallWindow{T};
-        rng=-1
+        [rng::Random.AbstractRNG,]
+        win::BallWindow{T}
     )::Vector{T} where {T}
 
 Sample uniformly at random in window `win`.
 """
 function Base.rand(
-    win::BallWindow{T};
-    rng=-1
+    rng::Random.AbstractRNG,
+    win::BallWindow{T}
 )::Vector{T} where {T}
-    rng = getRNG(rng)
     d = dimension(win)
     x = Vector{T}(undef, d+2)
     randn!(rng, x)
@@ -232,19 +232,18 @@ end
 
 """
     Base.rand(
+        [rng::Random.AbstractRNG,]
         win::BallWindow{T},
-        n::Int;
-        rng=-1
+        n::Int
     )::Matrix{T} where {T}
 
 Sample `n` points uniformly at random in window `win`.
 """
 function Base.rand(
+    rng::Random.AbstractRNG,
     win::BallWindow{T},
-    n::Int;
-    rng=-1
+    n::Int
 )::Matrix{T} where {T}
-    rng = getRNG(rng)
     d = dimension(win)
     X = Matrix{T}(undef, d+2, n)
     Random.randn!(rng, X)

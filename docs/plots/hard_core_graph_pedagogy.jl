@@ -8,8 +8,7 @@ g = LG.grid(dims)
 
 pp = PRS.HardCoreGraph(g, β)
 
-seed = 1
-rng = PRS.getRNG(seed)
+rng = Random.MersenneTwister(123)
 
 path(i) = joinpath("docs/plots/output/hard_core_graph", join([lpad(i, 3, "0"), ".pdf"]))
 
@@ -27,7 +26,6 @@ plot(pp.graph, dims, path(i); nodefillc=c_nodes)
 
 proba = pp.β / (one(pp.β) + pp.β)
 
-rng = PRS.getRNG(rng)
 adj = LG.adjacency_matrix(pp.graph)
 occupied = Random.randsubseq(rng, LG.vertices(pp.graph), proba)
 

@@ -71,3 +71,11 @@ Abstract type representing a window on a discrete state space
 - [`PRS.GraphNode`](@ref)
 """
 abstract type AbstractDiscreteWindow{T} <: AbstractWindow end
+
+function generate_sample(pp::AbstractPointProcess, args...; kwargs...)
+    return generate_sample(Random.default_rng(), pp, args...; kwargs...)
+end
+
+function generate_sample_prs(pp::AbstractPointProcess, args...; kwargs...)
+    return generate_sample_prs(Random.default_rng(), pp, args...; kwargs...)
+end
