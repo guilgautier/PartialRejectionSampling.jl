@@ -62,7 +62,7 @@ function HardCoreGraph(
     β::Real
 ) where {T<:Integer}
     @assert β >= 0
-    return HardCoreGraph{T}(graph, float(β))
+    return HardCoreGraph{T}(graph, β)
 end
 
 # Sampling
@@ -113,6 +113,12 @@ function generate_sample_prs(
     rng::Random.AbstractRNG,
     pp::HardCoreGraph{T}
 )::Vector{T} where {T}
+
+    β_max = 1 / (2 * sqrt(exp(1)) * LG.Δ(pp.graph) - 1)
+    if pp.β > β_max
+        @warn "The arguments do not satisfy Theorem 35 of Guo, Jerrum and Liu (2019): partial rejection sampling may not be efficient.
+        Given `graph`, consider choosing β ≤ $(β_max)"
+    end
 
     proba = pp.β / (one(pp.β) + pp.β)
 

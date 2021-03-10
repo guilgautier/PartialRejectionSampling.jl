@@ -240,10 +240,10 @@ function weighted_interaction_graph(
 )::SWG.SimpleWeightedGraph
     window_ = window(spp)
     if allequal(window_.w)
-        nb_cells_x = ceil(Int, window_.w[1] / spp.r)
+        nb_cells_x = cld(window_.w[1], spp.r)
         return uniform_weighted_graph(rng, king_graph(nb_cells_x))
     else
-        nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ spp.r)
+        nb_cells_x, nb_cells_y = cld.(Int, window_.w, spp.r)
         return uniform_weighted_graph(rng, king_graph(nb_cells_x, nb_cells_y))
     end
 end
@@ -264,9 +264,9 @@ function initialize_cells(
     window_ = window(spp)
     nb_cells_x = nb_cells_y = 1
     if allequal(window_.w)  # SquareWindow
-        nb_cells_x = nb_cells_y = ceil(Int, window_.w[1] / spp.r)
+        nb_cells_x = nb_cells_y = cld(window_.w[1], spp.r)
     else
-        nb_cells_x, nb_cells_y = ceil.(Int, window_.w ./ spp.r)
+        nb_cells_x, nb_cells_y = cld.(Int, window_.w, spp.r)
     end
 
     cells = Vector{SpatialCellGridPRS{T}}(undef, nb_cells_x * nb_cells_y)

@@ -197,9 +197,16 @@ function generate_sample_prs(
     pp::HardCorePointProcess{T},
     win::Union{Nothing,AbstractWindow}=nothing
 )::Vector{T} where {T}
-    win_ = win === nothing ? window(pp) : win
 
     β, r = intensity(pp), interaction_range(pp)
+    win_ = win === nothing ? window(pp) : win
+
+    β_max = 0.21027 / volume(BallWindow(zeros(dimension(win_)), r/2))
+    if β > β_max
+        @warn "The arguments do not satisfy Lemma 6 of Guo and Jerrum (2018): partial rejection sampling may not be efficient.
+        Given the interaction range `pp.r`, consider choosing β ≤ $(β_max)"
+    end
+
     points = generate_sample(rng, HomogeneousPoissonPointProcess(β, win_))
     while true
         bad = vec(any(pairwise_distances(points) .<= r, dims=2))
