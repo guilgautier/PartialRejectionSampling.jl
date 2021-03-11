@@ -1,7 +1,7 @@
 """
     RootedSpanningForest{T<:LG.SimpleDiGraph{Int64}} <: AbstractGraphPointProcess{T}
 
-Concrete type reprensenting a point process defined on the edges of a `graph` characterizing the uniform distribution on the [spanning forests](https://en.wikipedia.org/wiki/Spanning_tree) of `graph` rooted at `roots`.
+Concrete type reprensenting a point process defined on the edges of a **connected** `graph` characterizing the uniform distribution on the directed [spanning forests](https://en.wikipedia.org/wiki/Spanning_tree) of `graph` rooted at `roots`.
 
 It can be viewed as a the product distribution of the uniform distribution on the set of neighbors of each vertex conditioned on forming no cycles.
 
@@ -12,7 +12,7 @@ The object has two fields:
 
 **See also**
 
-Section 4.2 of [GuJeLi19](@cite).
+- Section 4.2 of [GuJeLi19](@cite).
 
 # Example
 
@@ -64,10 +64,10 @@ function RootedSpanningForest(
         if LG.is_connected(graph)
             return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
         else
-            throw(DomainError(graph, "graph should be connected"))
+            throw(DomainError(graph, "The graph must be connected"))
         end
     else
-        throw(DomainError(roots, "some roots not contained in vertices(graph)"))
+        throw(DomainError(roots, "roots must be contained in vertices(graph)"))
     end
 end
 
@@ -96,7 +96,10 @@ end
         pp::RootedSpanningForest{T}
     )::T where {T<:LG.SimpleDiGraph{Int64}}
 
-Generate a rooted spanning forest of `pp.graph`, uniformly at random among all rooted spanning forests rooted at `pp.roots`, using Partial Rejection Sampling (PRS), see Section 4.2 of [GuJeLi19](@cite).
+Generate a rooted spanning forest of `pp.`graph` with prescribed `pp.roots`, uniformly at random among all rooted spanning forests rooted at `pp.roots`, using Partial Rejection Sampling (PRS).
+
+**See also**
+- Section 4.2 of [GuJeLi19](@cite).
 
 # Example
 
@@ -123,7 +126,10 @@ end
         roots
     )::LG.SimpleDiGraph{T} where {T}
 
-Generate a rooted spanning forest from a **connected** `graph`, uniformly at random among all rooted spanning forests rooted at `roots`, using Wilson's algorithm.
+Generate a rooted spanning forest from a **connected** `graph` with prescribed `roots`, uniformly at random among all rooted spanning forests rooted at `roots`, using Partial Rejection Sampling.
+
+**See also**
+- Section 4.2 of [GuJeLi19](@cite).
 """
 function _generate_sample_rooted_spanning_forest_prs(
     rng::Random.AbstractRNG,
@@ -145,4 +151,72 @@ function _generate_sample_rooted_spanning_forest_prs(
         end
     end
     return g
+end
+
+function _generate_sample_rooted_spanning_forest_prs(
+    graph::LG.SimpleGraph{T},
+    roots
+)::LG.SimpleDiGraph{T} where {T}
+    return _generate_sample_rooted_spanning_forest_prs(Random.default_rng(), graph, roots)
+end
+
+@doc raw"""
+    _generate_sample_rooted_spanning_forest_wilson(
+        [rng::Random.AbstractRNG,]
+        graph::LG.SimpleGraph{T},
+        roots
+    )
+
+Generate a spanning forest of a **connected** `graph` with prescribed `roots`, uniformly at random among all rooted spanning forests rooted at `roots`, using [Wilson's algorithm](https://en.wikipedia.org/wiki/Loop-erased_random_walk#Uniform_spanning_tree).
+
+**See also**
+- [RandomForests.jl implementation](https://gricad-gitlab.univ-grenoble-alpes.fr/barthesi/RandomForests.jl/-/blob/master/src/random_spanning_tree.jl).
+"""
+function _generate_sample_rooted_spanning_forest_wilson(
+    rng::Random.AbstractRNG,
+    graph::LG.SimpleGraph{T},
+    roots
+)::LG.SimpleDiGraph{T} where {T}
+    in_tree = falses(LG.nv(graph))
+    for r in roots
+        @inbounds in_tree[r] = true
+    end
+
+    successors = zeros(T, LG.nv(graph))
+    for i in LG.vertices(graph)
+        # Run a natural random walk on g from i until the walk hits a vertex in tree
+        u = i
+        while !in_tree[u]
+            successors[u] = rand(rng, LG.neighbors(graph, u))
+            u = successors[u]
+        end
+        # Erase loops formed during the walk
+        u = i
+        while !in_tree[u]
+            in_tree[u] = true
+            u = successors[u]
+        end
+    end
+
+    return directed_forest_from_successors(successors)
+end
+
+function _generate_sample_rooted_spanning_forest_wilson(
+    graph::LG.SimpleGraph{T},
+    roots
+)::LG.SimpleDiGraph{T} where {T}
+    return _generate_sample_rooted_spanning_forest_wilson(Random.default_rng(), graph, roots)
+end
+
+"""
+    directed_forest_from_successors(successors)::LG.SimpleDiGraph
+
+Return a directed graph of size `length(successors)` with edges `i => successors[i]`.
+"""
+function directed_forest_from_successors(successors)::LG.SimpleDiGraph
+    graph = LG.SimpleDiGraph(length(successors))
+    for (i, j) in enumerate(successors)
+        LG.add_edge!(graph, i, j)
+    end
+    return graph
 end
