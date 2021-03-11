@@ -12,7 +12,7 @@ The [Ising model](https://en.wikipedia.org/wiki/Ising_model) characterizes a poi
         \exp(J x_i x_j)
 ```
 
-where ``(h_i)_{V}`` are called magnetization paremeters and ``J`` the interaction coefficient (``J \gtreqless 0`` characterizes ferro/antiferro magnetic interactions).
+where ``(h_i)_{i\in V}`` are called magnetization paremeters and ``J`` the interaction coefficient (``J \gtreqless 0`` characterizes ferro/antiferro magnetic interactions).
 
 # Example
 

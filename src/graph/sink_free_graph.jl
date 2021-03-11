@@ -3,6 +3,10 @@
 
 Concrete type representing a point process on the edges of a `graph` characterizing the uniform distribution on the orientations of the edges conditioned on the absence of sinks.
 
+**See also**
+
+- Section 4.1 of [GuJeLi19](@cite).
+
 # Example
 
 A realization from a ``5\\times 5`` grid graph

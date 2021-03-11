@@ -1,7 +1,7 @@
 @doc raw"""
     StraussPointProcess{T<:Vector{Float64}} <: AbstractSpatialPointProcess{T}
 
-Spatial point process with density (w.r.t. the homogenous Poisson point process with unit intensity) given by
+Spatial point process with density (w.r.t. the homogenous Poisson point process with unit intensity) proportional to
 
 ```math
     \prod_{x \in X}
