@@ -216,3 +216,15 @@ function random_neighbor_assignment(
 ) where {T}
     return random_neighbor_assignment(Random.default_rng(), graph, roots)
 end
+
+## String methods
+
+function eachmatch_ranges(regex::Regex, string::String; overlap=false)
+    matches = eachmatch(regex, string; overlap=overlap)
+    p = length(regex.pattern)
+    return (m.offset:(m.offset + p - 1) for m in matches)
+end
+
+function find_prefix_suffix(s::String)
+    return [i for i in 1:div(length(s), 2) if s[1:i] == s[end-i+1:end]]
+end
