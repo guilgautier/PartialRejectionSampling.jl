@@ -203,8 +203,7 @@ function generate_sample_prs(
 
     β_max = 0.21027 / volume(BallWindow(zeros(dimension(win_)), r/2))
     if β > β_max
-        @warn "The arguments do not satisfy Lemma 6 of Guo and Jerrum (2018): partial rejection sampling may not be efficient.
-        Given the interaction range `pp.r`, consider choosing β ≤ $(β_max)"
+        @warn "The arguments do not satisfy Lemma 6 of Guo and Jerrum (2018).\nPartial rejection sampling may not be efficient.\nGiven the interaction range `pp.r`, consider choosing β ≤ $(β_max)"
     end
 
     points = generate_sample(rng, HomogeneousPoissonPointProcess(β, win_))

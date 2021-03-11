@@ -16,7 +16,7 @@ In other words, it can also be viewed as the product distribution ``\operatornam
 **See also**
 
 - Section 7.2 of [GuJeLi19](@cite),
-- Example 4.1 of [MoKr20](@ref),
+- Example 4.1 of [MoKr20](@cite),
 - [`PRS.HardCorePointProcess`](@ref), the spatial counterpart of [`PRS.HardCoreGraph`](@ref).
 
 # Example
@@ -116,8 +116,7 @@ function generate_sample_prs(
 
     β_max = 1 / (2 * sqrt(exp(1)) * LG.Δ(pp.graph) - 1)
     if pp.β > β_max
-        @warn "The arguments do not satisfy Theorem 35 of Guo, Jerrum and Liu (2019): partial rejection sampling may not be efficient.
-        Given `graph`, consider choosing β ≤ $(β_max)"
+        @warn "The arguments do not satisfy Theorem 35 of Guo, Jerrum and Liu (2019).\nPartial rejection sampling may not be efficient.\nGiven `graph`, consider choosing β ≤ $(β_max)"
     end
 
     proba = pp.β / (one(pp.β) + pp.β)
