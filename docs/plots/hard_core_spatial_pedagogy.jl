@@ -1,5 +1,5 @@
-# const PRS = PartialRejectionSampling, Plots, GraphPlot, Colors, LS = LazySets, LG = LightGraphs
-includet("docs/plots/pedagogy_spatial.jl")
+include(joinpath(@__DIR__, "pedagogy_spatial.jl"))
+using Random
 
 β₀ = 0.3
 r = 0.1  # interaction range = 2*radius
@@ -10,6 +10,5 @@ win = PRS.SquareWindow(c, w)
 
 hc = PRS.HardCorePointProcess(b, r, win)
 
-using Random
 rng = Random.MersenneTwister(123)
-pedagogy_generate_sample_prs(hc; rng=rng)
+hard_core_spatial_pedagogy(hc; rng=rng)

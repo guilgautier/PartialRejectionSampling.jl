@@ -1,5 +1,5 @@
-using PartialRejectionSampling;
-const PRS = PartialRejectionSampling;
+using PartialRejectionSampling
+using Random
 
 using RCall;
 @rimport spatstat as rspatstat;
@@ -15,7 +15,6 @@ win = PRS.SquareWindow(c, w)
 hc = PRS.HardCorePointProcess(b, r, win)
 
 # Time comparison PRS / spatstat
-using Random
 rng = Random.MersenneTwister(123)
 
 @time PRS.generate_sample_prs(rng, hc);

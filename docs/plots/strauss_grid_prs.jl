@@ -1,5 +1,5 @@
-# const PRS = PartialRejectionSampling, Plots, Colors, LS = LazySets
-includet("docs/plots/pedagogy_spatial.jl")
+using Random
+include(joinpath(@__DIR__, "pedagogy_spatial.jl"))
 
 β₀ = 0.1
 r = 0.05  # interaction range = 2*radius
@@ -14,7 +14,6 @@ win = PRS.SquareWindow(c, w)
 
 strauss = PRS.StraussPointProcess(β, γ, r, win)
 
-using Random
 rng = Random.MersenneTwister(123)
 @time sample = PRS.generate_sample_grid_prs(rng, strauss)
 
@@ -25,4 +24,5 @@ p = pedagogy_plot(sample,
     win
 )
 
-Plots.savefig(p, "docs/plots/output/strauss/strauss_grid_prs.pdf")
+path = joinpath(@__DIR__, "output", "strauss", "strauss_grid_prs.pdf")
+Plots.savefig(p, path)

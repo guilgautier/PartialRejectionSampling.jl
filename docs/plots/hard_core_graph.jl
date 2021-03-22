@@ -1,5 +1,5 @@
-# const PRS = PartialRejectionSampling, Plots, GraphPlot, Colors, LS = LazySets, LG = LightGraphs
-includet("docs/plots/pedagogy_graph.jl")
+include(joinpath(@__DIR__, "pedagogy_graph.jl"))
+using Random
 
 dims = [5, 5]
 g = LG.grid(dims)
@@ -7,10 +7,10 @@ g = LG.grid(dims)
 
 hcg = PRS.HardCoreGraph(g, β)
 
-using Random
 rng = Random.MersenneTwister(123)
 @time sample = PRS.generate_sample_prs(rng, hcg)
 
-p = plot(hcg, sample, dims, "docs/plots/output/hard_core_graph.pdf")
+path = joinpath(@__DIR__, "output", "hard_core_graph", "hard_core_graph.pdf")
+p = plot(hcg, sample, dims, path)
 
-@time sample = PRS.generate_sample_prs(hcg)
+# @time sample = PRS.generate_sample_prs(hcg)

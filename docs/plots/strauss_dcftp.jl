@@ -1,5 +1,5 @@
-# const PRS = PartialRejectionSampling, Plots, Colors, LS = LazySets
-includet("docs/plots/pedagogy_spatial.jl")
+include(joinpath(@__DIR__, "pedagogy_spatial.jl"))
+using Random
 
 # Experimental setup refers to slide 9 of [E. Rubak](https://www-ljk.imag.fr/membres/Jean-Francois.Coeurjolly/documents/lecture4.pdf)
 β, γ, r = 2.0, 0.2, 0.7  # γ = 0 ≡ Hard core
@@ -9,9 +9,9 @@ win = PRS.SquareWindow(c, w)
 
 strauss = PRS.StraussPointProcess(β, γ, r, win)
 
-using Random
 rng = Random.MersenneTwister(123)
 @time sample = PRS.generate_sample_dcftp(rng, strauss)
 
 p = plot(strauss, sample; title="")
-Plots.savefig(p, "docs/plots/output/strauss_dcftp.pdf")
+path = joinpath(@__DIR__, "output", "strauss", "strauss_dcftp.pdf")
+Plots.savefig(p, path)

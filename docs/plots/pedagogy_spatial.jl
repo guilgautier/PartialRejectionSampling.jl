@@ -1,18 +1,21 @@
 using PartialRejectionSampling
 using Distributions
-
+using Random
 using Plots
 
 # Pedagogy
-function pedagogy_generate_sample_prs(
+function hard_core_spatial_pedagogy(
     pp::PRS.HardCorePointProcess{T};
     win::Union{Nothing,PRS.AbstractWindow}=nothing,
     rng=-1
 )::Vector{T} where {T}
 
-    path(i) = joinpath("docs/plots/output/hard_core_spatial", join([lpad(i, 3, "0"), ".pdf"]))
+    path(i) = joinpath(@__DIR__,
+                       "output",
+                       "hard_core_spatial",
+                       join([lpad(i, 3, "0"), ".pdf"]))
 
-    window_ = win === nothing ? PRS.window(pp) : win
+    window_ = isnothing(win) ? PRS.window(pp) : win
 
     n = rand(rng, Distributions.Poisson(pp.β * PRS.volume(window_)))
     points = Matrix{Float64}(undef, PRS.dimension(pp), n)
@@ -34,7 +37,8 @@ function pedagogy_generate_sample_prs(
         !any(bad) && break
 
         p = pedagogy_plot(points[:, .!bad], true, 0, "white", pp.window)
-        pedagogy_plot!(p, points[:, bad], false, pp.r/2, "red", pp.window)
+
+        pedagogy_plot!(p, points[:, bad], true, pp.r/2, "red", pp.window)
         i+=1
         Plots.savefig(p, path(i))
 
