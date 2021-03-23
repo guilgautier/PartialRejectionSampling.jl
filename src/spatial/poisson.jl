@@ -48,7 +48,7 @@ function HomogeneousPoissonPointProcess(
     window::Union{Nothing,AbstractSpatialWindow}=nothing
 )
     @assert β > 0
-    win = window === nothing ? SquareWindow() : window
+    win = isnothing(window) ? SquareWindow() : window
     return HomogeneousPoissonPointProcess{Vector{Float64}}(β, win)
 end
 
@@ -76,7 +76,7 @@ function generate_sample(
     pp::HomogeneousPoissonPointProcess{Vector{T}},
     win::Union{Nothing,AbstractWindow}=nothing
 )::Matrix{T} where {T<:Float64}
-    window_ = win === nothing ? window(pp) : win
+    window_ = isnothing(win) ? window(pp) : win
     n = rand(rng, Distributions.Poisson(pp.β * volume(window_)))
     return rand(rng, window_, n)
 end
@@ -118,7 +118,7 @@ function generate_sample_poisson_union_balls(
     win::Union{Nothing,AbstractWindow}=nothing
 )::Matrix{Float64}
     d = size(centers, 1)
-    !(win === nothing) && @assert dimension(win) == d
+    !(isnothing(win)) && @assert dimension(win) == d
 
     𝒫 = Distributions.Poisson(β * volume(BallWindow(zeros(d), radius)))
     points = Matrix{Float64}(undef, d, 0)
@@ -135,7 +135,7 @@ function generate_sample_poisson_union_balls(
         points = hcat(points, proposed[:, accept])
     end
 
-    if win === nothing || isempty(points)
+    if isnothing(win) || isempty(points)
         return points
     end
     return points[:, vec(mapslices(x -> x in win, points; dims=1))]

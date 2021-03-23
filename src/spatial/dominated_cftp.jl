@@ -70,7 +70,7 @@ function generate_sample_dcftp(
 )::Vector{T} where {T}
     @assert n₀ >= 1
 
-    window_ = win === nothing ? window(pp) : win
+    window_ = isnothing(win) ? window(pp) : win
     β = upper_bound_papangelou_conditional_intensity(pp)
     birth_rate = β * volume(window_)
 

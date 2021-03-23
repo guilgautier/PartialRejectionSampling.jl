@@ -79,7 +79,7 @@ function StraussPointProcess(
     @assert β > 0
     @assert 0 <= γ <= 1
     @assert r > 0
-    win = window === nothing ? SquareWindow() : window
+    win = isnothing(window) ? SquareWindow() : window
     return StraussPointProcess{Vector{Float64}}(β, γ, r, win)
 end
 

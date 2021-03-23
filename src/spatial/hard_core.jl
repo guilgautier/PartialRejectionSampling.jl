@@ -71,7 +71,7 @@ function HardCorePointProcess(
 )
     @assert β > 0
     @assert r > 0
-    win = window === nothing ? SquareWindow() : window
+    win = isnothing(window) ? SquareWindow() : window
     return HardCorePointProcess{Vector{Float64}}(β, r, win)
 end
 
@@ -199,7 +199,7 @@ function generate_sample_prs(
 )::Vector{T} where {T}
 
     β, r = intensity(pp), interaction_range(pp)
-    win_ = win === nothing ? window(pp) : win
+    win_ = isnothing(win) ? window(pp) : win
 
     β_max = 0.21027 / volume(BallWindow(zeros(dimension(win_)), r/2))
     if β > β_max

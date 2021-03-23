@@ -59,7 +59,7 @@ function RootedSpanningForest(
     graph::LG.SimpleGraph{T},
     roots::Union{Nothing,T,AbstractVector{T},AbstractSet{T}}=nothing
 ) where {T<:Int}
-    roots_ = unique(roots === nothing ? rand(LG.vertices(graph)) : roots)
+    roots_ = unique(isnothing(roots) ? rand(LG.vertices(graph)) : roots)
     if issubset(roots_, LG.vertices(graph))
         if LG.is_connected(graph)
             return RootedSpanningForest{LG.SimpleDiGraph{T}}(graph, roots_)
