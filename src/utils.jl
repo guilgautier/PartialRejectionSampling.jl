@@ -219,12 +219,38 @@ end
 
 ## String methods
 
-function eachmatch_ranges(regex::Regex, string::String; overlap=false)
-    matches = eachmatch(regex, string; overlap=overlap)
-    p = length(regex.pattern)
-    return (m.offset:(m.offset + p - 1) for m in matches)
+function findall_overlap(pat::AbstractString, str::AbstractString)
+    found = UnitRange{Int64}[]
+    isempty(pat) && return found
+
+    rng = findfirst(pat, str)
+    isnothing(rng) && return found
+
+    i, j = first(rng), last(rng)
+    k, e = first(rng), lastindex(str)
+    while k <= e
+        @inbounds k = nextind(str, k)
+        rng = findnext(pat, str, k)
+        if isnothing(rng)
+            push!(found, i:j)
+            break
+        end
+        k = first(rng)
+        if j < k
+            push!(found, i:j)
+            i = k
+        end
+        j = last(rng)
+    end
+
+    return found
 end
 
-function find_prefix_suffix(s::String)
-    return [i for i in 1:div(length(s), 2) if s[1:i] == s[end-i+1:end]]
+function has_common_prefix_suffix(s::String)
+    n = length(s)
+    n <= 1 && return false
+    for i in 1:div(n, 2)
+        @inbounds s[1:i] == s[n-i+1:n] && return true
+    end
+    return false
 end

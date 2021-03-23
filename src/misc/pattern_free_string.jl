@@ -2,17 +2,18 @@
     PatternFreeString{T<:String} <: AbstractPointProcess{T}
 
 Struct with fields
-- `alphabet::Vector{Char}`,
-- `pattern::Regex`,
+- `alphabet::Vector{String}`,
+- `pattern::String`,
+
 used to generate strings made of characters from `alphabet` avoiding the prescribed `pattern`.
 """
 struct PatternFreeString{T<:String} <: AbstractPointProcess{T}
-    alphabet::Vector{Char}
-    pattern::Regex
+    pattern::T
+    alphabet::Vector{T}
 end
 
 function Base.show(io::IO, pp::PatternFreeString{T}) where {T}
-    print(io, "PatternFreeString{$T}\n- alphabet = $(pp.alphabet)\n- pattern = $(pp.pattern.pattern)")
+    print(io, "PatternFreeString{$T}\n- pattern = $(pp.pattern)\n- alphabet = $(pp.alphabet)")
 end
 
 """
@@ -22,22 +23,22 @@ Construct a [`PRS.PatternFreeString`](@ref).
 
 ```jldoctest; output = true
 using PartialRejectionSampling
-PRS.PatternFreeString(['A', 'C', 'G', 'T'], "ATGTA")
+PRS.PatternFreeString("ATGTA", ["A", "C", "G", "T"])
 
 # output
 
 PatternFreeString{String}
-- alphabet = ['A', 'C', 'G', 'T']
 - pattern = ATGTA
+- alphabet = ["A", "C", "G", "T"]
 ```
 """
-function PatternFreeString(alphabet::Vector{Char}, pattern::String)
-    @assert !isempty(alphabet)
+function PatternFreeString(pattern::String, alphabet::Vector{String})
     @assert !isempty(pattern)
-    if !issubset(Vector{Char}(pattern), alphabet)
-        throw(DomainError(pattern, "pattern $(pattern) is not fully made of characters from alphabet $(alphabet)"))
+    @assert !isempty(alphabet)
+    if !issubset(string.(unique(pattern)), alphabet)
+        throw(DomainError(pattern, "pattern is not fully made of characters from alphabet $(alphabet)"))
     end
-    return PatternFreeString{String}(alphabet, Regex(pattern))
+    return PatternFreeString{String}(pattern, alphabet)
 end
 
 """
@@ -47,7 +48,7 @@ end
         size::Int
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `pp.alphabet` with no occurence of the pattern `pp.pattern`.
+Generate a string uniformly at random among all strings made of characters from `pp.alphabet` with no occurence of `pp.pattern`.
 
 Default sampler is [`PRS.generate_sample_prs`](@ref).
 """
@@ -70,16 +71,16 @@ end
         size::Int
     )::T where {T<:String}
 
-Generate a string uniformly at random among all strings made of characters from `pp.alphabet` with no occurence of the pattern `pp.pattern`, using a tailored version of Partial Rejection Sampling (PRS).
-
-**See also**
--  Technical report of [GiAmWe18](@cite)
+Generate a string uniformly at random among all strings made of characters from `pp.alphabet` with no occurence of `pp.pattern`, using a tailored version of Partial Rejection Sampling (PRS).
 
 ```@example
 using PartialRejectionSampling
-pp = PRS.PatternFreeString(['A', 'C', 'G', 'T'], "ATGTA")
+pp = PRS.PatternFreeString("ATGTA", ["A", "C", "G", "T"])
 PRS.generate_sample_prs(pp, 20)
 ```
+
+**See also**
+- [GiAmWe18](@cite), Sections 2.1 and 4
 """
 function generate_sample_prs(
     rng::Random.AbstractRNG,
@@ -87,175 +88,147 @@ function generate_sample_prs(
     size::Int
 )::T where {T<:String}
     @assert size > 0
-    @assert !isempty(pp.alphabet)
-    @assert !isempty(pp.pattern.pattern)
-    return _pattern_free_string_prs(rng, pp.alphabet, pp.pattern, size)
+    return _pattern_free_string_prs(rng, pp.pattern, pp.alphabet, size)
 end
 
 """
     _generate_pattern_free_string_prs(
         rng::Random.AbstractRNG,
-        alphabet::Vector{Char},
-        pattern::Regex,
+        pattern::String,
+        alphabet::Vector{String},
         size::Int
     )::String
 
-Generate a string uniformly at random among all strings made of characters from `alphabet` with no occurence of the pattern `pattern`, using a tailored version of Partial Rejection Sampling (PRS) derived by [GiAmWe18](@cite)
+Generate a string uniformly at random among all strings made of characters from `alphabet` with no occurence of the pattern `pattern`, using a tailored version of Partial Rejection Sampling (PRS)
+
+**See also**
+- [GiAmWe18](@cite), Sections 2.1 and 4
 """
 function _pattern_free_string_prs(
     rng::Random.AbstractRNG,
-    alphabet::Vector{Char},
-    regex::Regex,
+    pattern::String,
+    alphabet::Vector{String},
     size::Int
 )::String
-    pref_suff = find_prefix_suffix(regex.pattern)
-    if isempty(pref_suff)
-        return _pattern_free_string_prs_extremal(rng, alphabet, regex, size)
+    if has_common_prefix_suffix(pattern)
+        return _pattern_free_string_prs_general(rng, pattern, alphabet, size)
     else
-        return _pattern_free_string_prs_general(rng, alphabet, regex, size, pref_suff)
+        return _pattern_free_string_prs_extremal(rng, pattern, alphabet, size)
     end
 end
 
 ## Extremal PRS
 
-function _pattern_free_string_prs_extremal(rng, alphabet, regex, size)
+function _pattern_free_string_prs_extremal(rng, pattern, alphabet, size)
     str_vec = rand(rng, alphabet, size)
     while true
         str = join(str_vec)
-        bad_ranges = eachmatch_ranges(regex, str)
-        isempty(bad_ranges) && return str
-        for b in bad_ranges
-            str_vec[b] .= rand(rng, alphabet, length(b))
+        bad = findall(pattern, str; overlap=false)
+        isempty(bad) && return str
+        for range_ in bad
+            str_vec[range_] .= rand(rng, alphabet, length(range_))
         end
     end
 end
 
 ## General PRS
 
-function _pattern_free_string_prs_general(rng, alphabet, regex, size, pref_suff)
-    throw(DomainError(regex.pattern, "Generalized PRS is not yet implemented for pattern free strings"))
-    # pp = fill("", size)
-    # resample_indices = Set(1:size)
-
-    # while !isempty(resample_indices)
-    #     generate_sample!(rng, pp, resample_indices, alphabet)
-    #     resample_indices = find_characters_to_resample(pp, regex, pref_suff)
-    # end
-    # return join(pp)
+function _pattern_free_string_prs_general(rng, pattern, alphabet, size)
+    str_vec = Vector{String}(undef, size)
+    rand!(rng, str_vec, alphabet)
+    tmp_vec = fill("", size)
+    while true
+        str = join(str_vec)
+        bad = findall_overlap(pattern, str)
+        isempty(bad) && return str
+        for range_ in bad
+            @inbounds tmp_vec[range_] .= str_vec[range_]
+        end
+        res = empty(bad)
+        while !isempty(bad)
+            B = popfirst!(bad)
+            B̄ = _check_extension!(tmp_vec, str_vec, pattern, B)
+            if isequal(B, B̄)
+                push!(res, B)
+            else
+                push!(bad, B̄)
+            end
+        end
+        for range_ in res
+            @inbounds str_vec[range_] .= rand(rng, alphabet, length(range_))
+        end
+    end
 end
 
-# """
-#     generate_sample!(
-#         rng::Random.AbstractRNG,
-#         string_vec::Vector{T},
-#         indices,
-#         alphabet::Vector{T}
-#     ) where {T<:AbstractString}
+"""
+    _check_extension!(
+        tmp_vec::Vector{String},
+        str_vec::Vector{String},
+        pattern::String,
+        window::UnitRange{U}
+    )::UnitRange{U} where {U<:Int}
 
-# Generate a character uniformly at random from `alphabet` at positions prescribed by `indices` in `string_vec`.
-# """
-# function generate_sample!(
-#     rng::Random.AbstractRNG,
-#     string_vec::Vector{T},
-#     indices,
-#     alphabet::Vector{T}
-# ) where {T<:AbstractString}
-#     for i in indices
-#         string_vec[i] = rand(rng, alphabet)
-#     end
-# end
+Assuming `join(tmp_vec[window]) == join(str_vec[window]) == pattern`, check whether a reassigment of `""` elements from left or right of `tmp_vec[window]` can make `pattern` occur.
+If this is the case, the identified `""` elements of `tmp_vec` are set with the corresponding elements from `str_vec` and the *extended* window where pattern can arise is returned.
+Otherwise the original `window` is returned.
+"""
+function _check_extension!(
+    tmp_vec::Vector{String},
+    str_vec::Vector{String},
+    pattern::String,
+    window::UnitRange{U}
+)::UnitRange{U} where {U<:Int}
+    p = length(pattern)
+    i, j = first(window), last(window)
+    # left looking
+    i₋ = max(firstindex(tmp_vec), i-p+1)
+    while i₋ < i
+        window_ = i₋:min(i₋+p-1, j)
+        range_ = _pattern_can_occur_if_reassignment_at(pattern, tmp_vec, window_)
+        if !isempty(range_)
+            @inbounds tmp_vec[range_] .= str_vec[range_]
+            break
+        end
+        i₋ += 1
+    end
+    # right looking
+    j₊ = min(lastindex(tmp_vec), j+p-1)
+    while j₊ > j
+        window_ = j₊:max(j₊-p+1, i)
+        range_ = _pattern_can_occur_if_reassignment_at(pattern, tmp_vec, window_)
+        if !isempty(range_)
+            @inbounds tmp_vec[range_] .= str_vec[range_]
+            break
+        end
+        j₊ -= 1
+    end
+    return i₋:j₊
+end
 
-# """
-#     find_bad_ranges(
-#         pattern::T,
-#         string::T
-#     )::Vector{UnitRange} where {T<:AbstractString}
+"""
+    _pattern_can_occur_if_reassignment_at(
+        pattern::String,
+        vec::Vector{String},
+        window::UnitRange{U}
+    )::UnitRange{U} where {U<:Int}
 
-# Identify where `pattern` occur in `string` and return the corresponding ranges of indices.
-# """
-# function find_bad_ranges(
-#     pattern::T,
-#     string::T
-# )::Vector{UnitRange} where {T<:AbstractString}
-
-#     bad_ranges = UnitRange{Int64}[]
-
-#     matches = eachmatch(Regex(pattern), string, overlap=true)
-#     isempty(matches) && return bad_ranges
-
-#     p = length(pattern)
-#     m, _ = iterate(matches)
-
-#     x1, y1 = m.offset, m.offset + p - 1
-#     for m in Iterators.drop(matches, 1)
-#         x2, y2 = m.offset, m.offset + p - 1
-#         if x2 <= y1 + 1
-#             y1 = y2
-#         else
-#             push!(bad_ranges, x1:y1)
-#             x1, y1 = x2, y2
-#         end
-#     end
-#     push!(bad_ranges, x1:y1)
-
-#     return bad_ranges
-# end
-
-# """
-#     find_characters_to_resample(
-#         string_vec::Vector{T},
-#         pattern::T,
-#         pref_suff::Vector{U}
-#     )::Vector{U} where {T<:String, U<:Int}
-
-# Identify the set of events to be resampled as constructed by Algorithm 5 in [GuJeLi19](@cite) as part of the Partial Rejection Sampling (PRS) method.
-# Return the indices of the variables involved in the corresponding events.
-
-# **See also**
-
-# - [`PRS.find_bad_ranges`](@ref)
-# """
-# function find_characters_to_resample(
-#     string_vec::Vector{T},
-#     pattern::T,
-#     pref_suff::Vector{U}
-# )::Vector{U} where {T<:String, U<:Int}
-
-#     # Extremal case
-#     isempty(pref_suff) && return vcat(findall(pattern, join(string_vec), overlap=false)...)
-
-#     # General case
-#     bad_ranges = find_bad_ranges(pattern, join(string_vec))
-#     isempty(bad_ranges) && return vcat(bad_ranges...)
-
-#     p, n = length(pattern), length(string_vec)
-#     tmp = fill("", n)
-
-#     for bad_range in bad_ranges
-#         tmp[bad_range] = string_vec[bad_range]
-#         start, stop = bad_range.start, bad_range.stop
-#         for ps in pref_suff
-#             flag_left = flag_right = false
-#             if !flag_left
-#                 I = (start - p + ps):(start - 1)
-#                 if I.start >= 1
-#                     flag_left = startswith(pattern, join(tmp[I]))
-#                     if flag_left
-#                         tmp[I] = string_vec[I]
-#                     end
-#                 end
-#             end
-#             if !flag_right
-#                 J = (stop + 1):(stop + p - ps)
-#                 if J.stop <= n
-#                     flag_right = endswith(pattern, join(tmp[J]))
-#                     if flag_right
-#                         tmp[J] = string_vec[J]
-#                     end
-#                 end
-#             end
-#             flag_left && flag_right && break
-#         end
-#     end
-#     return findall(!isempty, tmp)
-# end
+Find the range of indices of `window` where `""` elements of `vec[window]` can be modified to make the resulting `join(vec[window]) == pattern`.
+An empty range is returned otherwise.
+"""
+function _pattern_can_occur_if_reassignment_at(
+    pattern::String,
+    vec::Vector{String},
+    window::UnitRange{U}
+)::UnitRange{U} where {U<:Int}
+    empty_range = one(U):zero(U)
+    (isempty(window) || length(window) != length(pattern)) && return empty_range
+    i = first(window)
+    f1 = findnext(isempty, vec, i)
+    isnothing(f1) && return empty_range
+    j = last(window)
+    f2 = findprev(isempty, vec, j)
+    if startswith(pattern, join(vec[i:f1])) && endswith(pattern, join(vec[f2:j]))
+        return f1:f2
+    end
+    return empty_range
+end
