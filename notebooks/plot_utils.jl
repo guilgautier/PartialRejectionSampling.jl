@@ -6,9 +6,6 @@ using GraphPlot, Colors
 using LightGraphs
 const LG = LightGraphs
 
-using LazySets
-const LS = LazySets
-
 function plot(
     graph::LG.AbstractGraph,
     dims::Vector{Int}=zeros(Int, 2);
@@ -73,7 +70,7 @@ function plot(
     kwargs...
 )
     c_nodes, c_edges = color_cycles(sample)
-    c_nodes[collect(pp.roots)] .= Colors.colorant"orange"
+    c_nodes[collect(pp.roots)] .= Colors.colorant"lightgreen"
 
     plot(sample, dims; nodefillc=c_nodes, edgestrokec=c_edges)
 end
@@ -157,7 +154,7 @@ function plot(
         end
     end
 
-    win = window === nothing ? PRS.window(pp) : window
+    win = isnothing(window) ? PRS.window(pp) : window
     Plots.xlims!(win.c[1], win.c[1] + win.w[1])
     Plots.ylims!(win.c[2], win.c[2] + win.w[win.w isa Real ? 1 : 2])
 
