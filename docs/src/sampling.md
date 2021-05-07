@@ -74,7 +74,7 @@ Implementation of dominated Coupling From The Past (dCFTP) developed by [KeMo99]
 **See also**
 
 * [Hub16](@cite)
-* [Kendall's notes on perfect simulation](<https://warwick.ac.uk/fac/sci/statistics/staff/>  academic-research/kendall/personal/ppt/428.pdf)
+* [Kendall's notes on perfect simulation](https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/kendall/personal/ppt/428.pdf)
 
 ```@autodocs
 Modules = [PartialRejectionSampling]

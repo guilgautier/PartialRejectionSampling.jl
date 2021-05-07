@@ -67,8 +67,6 @@ StraussPointProcess{Array{Float64,1}}
 # Example
 
 A illustration of the procedure for ``\beta=78, \gamma=0.1`` and ``r=0.07`` on ``[0, 1]^2`` where points are marked with a circle of radius ``r/2``.
-
-![assets/strauss_spatial_prs.gif](assets/strauss_spatial_prs.gif)
 """
 function StraussPointProcess(
     β::Real,

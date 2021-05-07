@@ -22,7 +22,7 @@ where ``\beta > 0`` is called the background intensity and ``r > 0`` the interac
 
 # Example
 
-A realization for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2``.
+A realization for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2``, where points are marked with a circle of radius ``r/2``.
 
 ![assets/hard_core_spatial.png](assets/hard_core_spatial.png)
 """
@@ -189,6 +189,7 @@ Default window (`win=nothing`) is `window(pp)=pp.window`.
 # Example
 
 A illustration of the procedure for ``\beta=38`` and ``r=0.1`` on ``[0, 1]^2`` where points are marked with a circle of radius ``r/2``.
+Red disks highlight bad regions and orange disk, with radius ``r``, describe the resampling region.
 
 ![assets/hard_core_spatial_prs.gif](assets/hard_core_spatial_prs.gif)
 """

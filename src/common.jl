@@ -11,6 +11,7 @@ The type `T` corresponds to the elements' type of the point process (vectors, gr
 abstract type AbstractPointProcess{T} end
 Base.eltype(pp::AbstractPointProcess{T}) where {T} = T
 
+
 @doc raw"""
     AbstractGraphPointProcess{T<:Vector{Float64}} <: AbstractPointProcess{T}
 
