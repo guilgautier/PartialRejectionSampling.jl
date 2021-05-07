@@ -1,4 +1,6 @@
-my_notes.md
+notes/
+pres/
+*.ipynb
 docs/plots/output/*
 *.pdf
 
