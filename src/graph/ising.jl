@@ -18,7 +18,7 @@ where ``(h_i)_{i\in V}`` are called magnetization paremeters and ``J`` the inter
 
 A realization from a ``5\times 5`` grid graph, with ``h = 0.2, J = 0.1``.
 
-![assets/ising.png](assets/ising.png)
+![assets/ising_grid_prs.png](assets/ising_grid_prs.png)
 """
 struct Ising{T<:Int} <: AbstractGraphPointProcess{T}
     graph::LG.SimpleGraph{T}
